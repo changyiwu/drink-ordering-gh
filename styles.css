@@ -6,7 +6,7 @@
   /* Color Palette - Elegant Tea & Coffee Theme */
   --bg-primary: #FAF6F0;
   --text-main: #3E2723;
-  --text-muted: #8D6E63;
+  --text-muted: #5D4037; /* Darker warm brown for better contrast */
   
   --primary-color: #D84315; /* Rich Amber Orange */
   --primary-light: #FF8A65;
@@ -179,9 +179,9 @@ body {
 
 .app-header .subtitle {
   font-size: 1rem;
-  color: #FFE0B2;
-  font-weight: 500;
-  text-shadow: 0 1px 5px rgba(0,0,0,0.2);
+  color: #FFF3E0; /* Brighter cream for better contrast */
+  font-weight: 600; /* Slightly bolder */
+  text-shadow: 0 2px 6px rgba(0,0,0,0.45);
 }
 
 /* Responsive Main Grid */
@@ -344,7 +344,17 @@ select {
 }
 
 select:invalid {
-  color: #9E9E9E;
+  color: #7D6B60;
+}
+
+input::placeholder {
+  color: #7D6B60;
+  opacity: 0.7;
+}
+
+input::-webkit-input-placeholder {
+  color: #7D6B60;
+  opacity: 0.7;
 }
 
 .select-arrow {
@@ -618,14 +628,14 @@ select:focus + .select-arrow {
 }
 
 .badge-sweetness {
-  background-color: #FFF8E1;
-  color: #F57F17;
-  border: 1px solid #FFE082;
+  background-color: #FFF3E0;
+  color: #D84315; /* Darker amber-orange */
+  border: 1px solid #FFCC80;
 }
 
 .badge-ice {
   background-color: #E0F7FA;
-  color: #00838F;
+  color: #006064; /* Darker cyan */
   border: 1px solid #80DEEA;
 }
 
