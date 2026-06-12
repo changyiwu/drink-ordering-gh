@@ -10,6 +10,7 @@ import {
   deleteDoc, 
   doc 
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
 // Firebase configuration from CLI output
 const firebaseConfig = {
@@ -26,7 +27,21 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 const ordersCollection = collection(db, 'orders');
+
+// Sign in anonymously
+signInAnonymously(auth)
+  .then((userCredential) => {
+    console.log('Firebase Anonymous Auth Success. UID:', userCredential.user.uid);
+  })
+  .catch((error) => {
+    console.error('Firebase Auth failed:', error);
+    // Since toast function is defined later in the file, call it safely after DOM is loaded or when error occurs
+    window.addEventListener('DOMContentLoaded', () => {
+      showToast('❌ 驗證失敗，無法連接資料庫！', 'error');
+    });
+  });
 
 // DOM Elements
 const orderForm = document.getElementById('order-form');
