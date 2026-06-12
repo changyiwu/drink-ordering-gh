@@ -38,3 +38,7 @@ out/
 # AntiGravity temporary files
 .gemini/
 scratch/
+
+# Firebase temporary files
+.firebase/
+
