@@ -923,22 +923,6 @@ body.theme-mrwish {
   font-size: 1.2rem;
   margin-bottom: 12px;
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
-  background-color: #FFFFFF;
-}
-
-.shop-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: inherit;
-}
-
-.logo-badge img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: inherit;
 }
 
 .shop-card-action {
@@ -1162,4 +1146,28 @@ body.theme-mrwish {
 .clear-btn:active {
   transform: translateY(0);
 }
+
+.menu-external-link {
+  color: #FFF3E0;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(0, 0, 0, 0.25);
+  padding: 6px 14px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-smooth);
+  margin-top: 8px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.menu-external-link:hover {
+  background-color: rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px);
+  color: #FFFFFF;
+}
+
 
