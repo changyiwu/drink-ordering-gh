@@ -332,8 +332,7 @@ clearAllBtn.addEventListener('click', async () => {
 // Listen for Real-time orders updates from Firestore for this specific shop
 const q = query(
   ordersCollection, 
-  where('shopId', '==', shopId),
-  orderBy('createdAt', 'desc')
+  where('shopId', '==', shopId)
 );
 
 onSnapshot(q, (snapshot) => {
@@ -362,20 +361,30 @@ onSnapshot(q, (snapshot) => {
   const uniqueNames = new Set();
   const summaryMap = {};
   
+  // Extract and sort documents client-side to avoid requiring a composite index
+  const orders = [];
   snapshot.forEach((doc) => {
-    const data = doc.data();
-    const id = doc.id;
-    
-    const cups = parseInt(data.cups) || 1;
+    orders.push({ id: doc.id, ...doc.data() });
+  });
+  
+  orders.sort((a, b) => {
+    const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
+    const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
+    return timeB - timeA;
+  });
+  
+  orders.forEach((order) => {
+    const id = order.id;
+    const cups = parseInt(order.cups) || 1;
     totalCups += cups;
-    if (data.buyerName) {
-      uniqueNames.add(data.buyerName.trim());
+    if (order.buyerName) {
+      uniqueNames.add(order.buyerName.trim());
     }
     
     // Grouping for Statistics Table
-    const drinkName = data.drinkName || '未填寫';
-    const sweetness = data.sweetness || '未選';
-    const ice = data.ice || '未選';
+    const drinkName = order.drinkName || '未填寫';
+    const sweetness = order.sweetness || '未選';
+    const ice = order.ice || '未選';
     const specKey = `${drinkName} (${sweetness}/${ice})`;
     
     if (!summaryMap[specKey]) {
@@ -392,7 +401,7 @@ onSnapshot(q, (snapshot) => {
     orderRow.className = 'order-row';
     
     // Safe output escaping
-    const buyerName = escapeHtml(data.buyerName || '無名氏');
+    const buyerName = escapeHtml(order.buyerName || '無名氏');
     const displayDrink = escapeHtml(drinkName);
     const displaySweetness = escapeHtml(sweetness);
     const displayIce = escapeHtml(ice);
