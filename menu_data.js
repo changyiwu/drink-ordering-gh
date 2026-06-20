@@ -3,7 +3,7 @@ export const SHOPS_DATA = {
   '50lan': {
     name: '50嵐',
     themeClass: 'theme-50lan',
-    menuLink: 'https://www.50lan.com.tw/',
+    menuLink: 'https://cpok.tw/22709',
     menu: [
       // 找好茶
       { name: '茉莉綠茶', prices: { M: 30, L: 35 } },
@@ -199,7 +199,7 @@ export const SHOPS_DATA = {
   'coco': {
     name: 'CoCo 都可',
     themeClass: 'theme-coco',
-    menuLink: 'https://order.coco-tea.com/',
+    menuLink: 'https://cpok.tw/267491',
     menu: [
       // 純茶系列
       { name: '手採紅茶', prices: { M: 30, L: 35 } },
@@ -292,7 +292,7 @@ export const SHOPS_DATA = {
   'presotea': {
     name: '鮮茶道',
     themeClass: 'theme-presotea',
-    menuLink: 'https://presotea.com.tw/',
+    menuLink: 'https://sekainomys.com/presotea/',
     menu: [
       // 阿里山純萃茶
       { name: '阿里山冰茶', prices: { M: 35, L: 40 } },
@@ -381,7 +381,7 @@ export const SHOPS_DATA = {
   'mrwish': {
     name: 'Mr. Wish',
     themeClass: 'theme-mrwish',
-    menuLink: 'https://nidin.shop/brand/mrwish',
+    menuLink: 'https://sekainomys.com/mr-wish/',
     menu: [
       // 招牌鮮果茶
       { name: '光果茶', prices: { L: 65 } },
