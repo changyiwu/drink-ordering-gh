@@ -21,71 +21,105 @@ const SHOPS_DATA = {
     name: '50嵐',
     themeClass: 'theme-50lan',
     menu: [
-      '四季春珍波椰 (1號)',
-      '波霸紅茶拿鐵',
-      '冰淇淋紅茶',
-      '多多綠茶',
-      '重焙烏龍拿鐵',
-      '8冰綠',
-      '混珠奶烏',
-      '芒果青',
-      '珍珠阿華田',
-      '四季奶青瑪奇朵'
+      { name: '四季春珍波椰 (1號)', price: 45 },
+      { name: '波霸奶茶', price: 60 },
+      { name: '波霸紅茶拿鐵', price: 75 },
+      { name: '冰淇淋紅茶', price: 65 },
+      { name: '多多綠茶', price: 65 },
+      { name: '重焙烏龍拿鐵', price: 75 },
+      { name: '8冰綠', price: 60 },
+      { name: '混珠奶烏', price: 60 },
+      { name: '芒果青', price: 55 },
+      { name: '珍珠阿華田', price: 65 },
+      { name: '四季奶青瑪奇朵', price: 60 },
+      { name: '茉莉綠茶', price: 40 },
+      { name: '四季春茶', price: 40 },
+      { name: '黃金烏龍茶', price: 40 },
+      { name: '阿薩姆紅茶', price: 40 },
+      { name: '燕麥奶茶', price: 65 }
     ]
   },
   'chingshin': {
     name: '清心福全',
     themeClass: 'theme-chingshin',
     menu: [
-      '珍珠蜂蜜鮮奶普洱',
-      '優多綠茶',
-      '烏龍綠茶',
-      '珍珠奶茶',
-      '錫蘭奶紅',
-      '雙Q百香果綠茶',
-      '蜜桃凍紅茶',
-      '梅子綠茶'
+      { name: '珍珠蜂蜜鮮奶普洱', price: 75 },
+      { name: '優多綠茶', price: 55 },
+      { name: '烏龍綠茶', price: 45 },
+      { name: '波霸奶茶', price: 55 },
+      { name: '錫蘭奶紅', price: 50 },
+      { name: '雙Q百香果綠茶', price: 65 },
+      { name: '蜜桃凍紅茶', price: 55 },
+      { name: '梅子綠茶', price: 50 },
+      { name: '極品菁茶', price: 40 },
+      { name: '特選普洱茶', price: 40 },
+      { name: '翡翠烏龍茶', price: 40 },
+      { name: '椰果奶茶', price: 55 },
+      { name: '布丁奶茶', price: 65 },
+      { name: '冬瓜檸檬', price: 55 },
+      { name: '鮮奶拿鐵', price: 70 }
     ]
   },
   'coco': {
     name: 'CoCo 都可',
     themeClass: 'theme-coco',
     menu: [
-      '百香雙響炮',
-      '奶茶三兄弟',
-      '葡萄柚果粒茶',
-      '21歲輕檸烏龍',
-      '珍珠奶茶',
-      '四季珍椰青',
-      '紅柚雙響炮'
+      { name: '百香雙響炮', price: 65 },
+      { name: '奶茶三兄弟', price: 65 },
+      { name: '葡萄柚果粒茶', price: 70 },
+      { name: '21歲輕檸烏龍', price: 55 },
+      { name: '珍珠奶茶', price: 55 },
+      { name: '四季珍椰青', price: 55 },
+      { name: '紅柚雙響炮', price: 70 },
+      { name: '手採紅茶', price: 40 },
+      { name: '茉莉綠茶', price: 40 },
+      { name: '四季春茶', price: 40 },
+      { name: '布丁奶茶', price: 65 },
+      { name: '法式奶蓋綠茶', price: 60 },
+      { name: '檸檬冬瓜露', price: 50 },
+      { name: '芋頭牛奶', price: 70 },
+      { name: '金桔檸檬', price: 55 }
     ]
   },
   'presotea': {
     name: '鮮茶道',
     themeClass: 'theme-presotea',
     menu: [
-      '琥珀奶茶',
-      '墾丁冰茶',
-      '焙茶烤奶',
-      '招牌水果茶',
-      '阿里山冰茶',
-      '伯爵奶茶家族',
-      '紅心芭樂汁'
+      { name: '琥珀奶茶', price: 55 },
+      { name: '墾丁冰茶', price: 55 },
+      { name: '焙茶烤奶', price: 60 },
+      { name: '招牌水果茶', price: 65 },
+      { name: '阿里山冰茶', price: 45 },
+      { name: '伯爵奶茶家族', price: 65 },
+      { name: '紅心芭樂汁', price: 60 },
+      { name: '日月潭紅玉', price: 50 },
+      { name: '文山清茶', price: 40 },
+      { name: '四季春茶', price: 40 },
+      { name: '玄米茶拿鐵', price: 70 },
+      { name: '百香雙Q', price: 60 },
+      { name: '冬瓜檸檬', price: 55 },
+      { name: '黑糖珍珠鮮奶', price: 75 }
     ]
   },
   'mrwish': {
     name: 'Mr. Wish',
     themeClass: 'theme-mrwish',
     menu: [
-      '光果茶',
-      '楊枝甘露',
-      '愛文芒果冰沙',
-      '芒果厚奶',
-      '青果茶',
-      '紅心芭樂梅',
-      '波霸珍珠鮮奶茶',
-      '湖塩太妃烤奶',
-      '芋頭QQ鮮奶'
+      { name: '光果茶', price: 70 },
+      { name: '楊枝甘露', price: 85 },
+      { name: '愛文芒果冰沙', price: 80 },
+      { name: '芒果厚奶', price: 85 },
+      { name: '青果茶', price: 65 },
+      { name: '紅心芭樂梅', price: 65 },
+      { name: '波霸珍珠鮮奶茶', price: 70 },
+      { name: '湖塩太妃烤奶', price: 65 },
+      { name: '芋頭QQ鮮奶', price: 80 },
+      { name: '高山金萱茶', price: 40 },
+      { name: '熟成紅茶', price: 40 },
+      { name: '奇異果綠茶', price: 65 },
+      { name: '鮮榨柳橙綠', price: 70 },
+      { name: '冬瓜青茶', price: 45 },
+      { name: '珍珠奶茶', price: 55 }
     ]
   }
 };
@@ -108,12 +142,21 @@ document.title = `作伙喝飲料！ - ${shopInfo.name}`;
 document.getElementById('shop-title').textContent = shopInfo.name;
 document.getElementById('shop-subtitle').textContent = `朋友同事專屬 · ${shopInfo.name} 即時訂單看板`;
 
+// Fallback helper to get drink price for old orders
+function getDrinkPrice(shop, drink) {
+  const shopData = SHOPS_DATA[shop];
+  if (!shopData) return 0;
+  const item = shopData.menu.find(m => m.name === drink);
+  return item ? item.price : 0;
+}
+
 // Dynamically populate drink options
 const drinkSelect = document.getElementById('drink-name');
 shopInfo.menu.forEach(drink => {
   const option = document.createElement('option');
-  option.value = drink;
-  option.textContent = drink;
+  option.value = drink.name;
+  option.setAttribute('data-price', drink.price);
+  option.textContent = `${drink.name} ($${drink.price})`;
   drinkSelect.appendChild(option);
 });
 
@@ -253,12 +296,16 @@ orderForm.addEventListener('submit', async (e) => {
   submitBtn.querySelector('.btn-text').textContent = '送出中...';
 
   try {
-    // Add document to Firestore (including shopId and shopName)
+    const selectedOption = drinkSelect.options[drinkSelect.selectedIndex];
+    const price = parseInt(selectedOption.getAttribute('data-price')) || 0;
+
+    // Add document to Firestore (including shopId, shopName, price)
     await addDoc(ordersCollection, {
       shopId: shopId,
       shopName: shopInfo.name,
       buyerName: buyerNameInput.value.trim(),
       drinkName: drinkSelect.value,
+      price: price,
       cups: cups,
       sweetness: sweetnessSelect.value,
       ice: iceLevelSelect.value,
@@ -339,6 +386,8 @@ onSnapshot(q, (snapshot) => {
   // Clear loading state or current list
   ordersList.innerHTML = '';
   summaryTableBody.innerHTML = '';
+  const paymentTableBody = document.getElementById('payment-table-body');
+  paymentTableBody.innerHTML = '';
   
   if (snapshot.empty) {
     emptyState.classList.remove('hidden');
@@ -348,6 +397,13 @@ onSnapshot(q, (snapshot) => {
     // Empty stats table
     summaryTableBody.innerHTML = `
       <tr>
+        <td colspan="4" style="text-align: center; color: var(--text-muted);">無統計資料</td>
+      </tr>
+    `;
+    
+    // Empty payments table
+    paymentTableBody.innerHTML = `
+      <tr>
         <td colspan="3" style="text-align: center; color: var(--text-muted);">無統計資料</td>
       </tr>
     `;
@@ -356,10 +412,11 @@ onSnapshot(q, (snapshot) => {
   
   emptyState.classList.add('hidden');
   
-  let totalPeople = 0;
   let totalCups = 0;
+  let totalMoney = 0;
   const uniqueNames = new Set();
   const summaryMap = {};
+  const paymentMap = {};
   
   // Extract and sort documents client-side to avoid requiring a composite index
   const orders = [];
@@ -376,13 +433,18 @@ onSnapshot(q, (snapshot) => {
   orders.forEach((order) => {
     const id = order.id;
     const cups = parseInt(order.cups) || 1;
+    const drinkName = order.drinkName || '未填寫';
+    const price = parseInt(order.price) || getDrinkPrice(shopId, drinkName);
+    const subtotal = price * cups;
+    
     totalCups += cups;
+    totalMoney += subtotal;
+    
     if (order.buyerName) {
       uniqueNames.add(order.buyerName.trim());
     }
     
-    // Grouping for Statistics Table
-    const drinkName = order.drinkName || '未填寫';
+    // Grouping for Drink Summary Table
     const sweetness = order.sweetness || '未選';
     const ice = order.ice || '未選';
     const specKey = `${drinkName} (${sweetness}/${ice})`;
@@ -390,25 +452,43 @@ onSnapshot(q, (snapshot) => {
     if (!summaryMap[specKey]) {
       summaryMap[specKey] = {
         drinkName: drinkName,
+        price: price,
         specs: `${sweetness} / ${ice}`,
-        cups: 0
+        cups: 0,
+        total: 0
       };
     }
     summaryMap[specKey].cups += cups;
+    summaryMap[specKey].total += subtotal;
+    
+    // Grouping for Personal Payment Table
+    const buyer = order.buyerName ? order.buyerName.trim() : '無名氏';
+    if (!paymentMap[buyer]) {
+      paymentMap[buyer] = {
+        buyer: buyer,
+        items: [],
+        total: 0
+      };
+    }
+    paymentMap[buyer].items.push(`${drinkName} ($${price}) x${cups}`);
+    paymentMap[buyer].total += subtotal;
     
     // Create list row element
     const orderRow = document.createElement('div');
     orderRow.className = 'order-row';
     
     // Safe output escaping
-    const buyerName = escapeHtml(order.buyerName || '無名氏');
+    const buyerName = escapeHtml(buyer);
     const displayDrink = escapeHtml(drinkName);
     const displaySweetness = escapeHtml(sweetness);
     const displayIce = escapeHtml(ice);
     
     orderRow.innerHTML = `
       <div class="col-name">${buyerName}</div>
-      <div class="col-drink">${displayDrink}</div>
+      <div class="col-drink">
+        ${displayDrink}
+        <span style="font-size: 0.8rem; opacity: 0.75; display: block; font-weight: 500;">單價: $${price}</span>
+      </div>
       <div class="col-specs">
         <div class="badge-wrapper">
           <span class="badge badge-sweetness">${displaySweetness}</span>
@@ -417,6 +497,7 @@ onSnapshot(q, (snapshot) => {
       </div>
       <div class="col-cups">
         <span class="badge-cups">${cups} 杯</span>
+        <span style="font-size: 0.8rem; display: block; margin-top: 4px; font-weight: 700; color: var(--primary-color);">$${subtotal}</span>
       </div>
       <div class="col-action">
         <button class="delete-order-btn" onclick="deleteOrder('${id}', '${buyerName}')" title="刪除此訂單">
@@ -434,9 +515,10 @@ onSnapshot(q, (snapshot) => {
     const item = summaryMap[key];
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${escapeHtml(item.drinkName)}</td>
+      <td>${escapeHtml(item.drinkName)} <span style="font-size: 0.8rem; opacity: 0.75;">($${item.price})</span></td>
       <td>${escapeHtml(item.specs)}</td>
       <td style="text-align: center; font-weight: 700;">${item.cups} 杯</td>
+      <td style="text-align: center; font-weight: 700; color: var(--primary-color);">$${item.total}</td>
     `;
     summaryTableBody.appendChild(tr);
   });
@@ -447,8 +529,22 @@ onSnapshot(q, (snapshot) => {
   totalTr.innerHTML = `
     <td colspan="2" style="text-align: right;">總計：</td>
     <td style="text-align: center;">${totalCups} 杯</td>
+    <td style="text-align: center;">$${totalMoney}</td>
   `;
   summaryTableBody.appendChild(totalTr);
+  
+  // Render Personal Payment Table
+  const sortedBuyers = Object.keys(paymentMap).sort((a, b) => a.localeCompare(b));
+  sortedBuyers.forEach(buyer => {
+    const info = paymentMap[buyer];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight: 700; color: var(--accent-color);">${escapeHtml(info.buyer)}</td>
+      <td style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">${escapeHtml(info.items.join('、'))}</td>
+      <td style="text-align: center; font-weight: 800; color: var(--primary-color);">$${info.total}</td>
+    `;
+    paymentTableBody.appendChild(tr);
+  });
   
   // Update dashboard stats
   statPeople.textContent = uniqueNames.size;

@@ -187,10 +187,32 @@
                 <tr>
                   <th>品項名稱</th>
                   <th>糖量 / 冰塊</th>
-                  <th style="text-align: center; width: 100px;">總數量</th>
+                  <th style="text-align: center; width: 80px;">總數量</th>
+                  <th style="text-align: center; width: 100px;">總金額</th>
                 </tr>
               </thead>
               <tbody id="summary-table-body">
+                <tr>
+                  <td colspan="4" style="text-align: center; color: var(--text-muted);">無統計資料</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Personal Payment Summary Section -->
+        <div class="summary-section" style="margin-top: 32px;">
+          <h2><i class="fa-solid fa-comments-dollar"></i> 每人應付金額統計</h2>
+          <div class="stats-table-wrapper">
+            <table class="stats-table">
+              <thead>
+                <tr>
+                  <th style="width: 120px;">訂購人</th>
+                  <th>訂購明細</th>
+                  <th style="text-align: center; width: 100px;">應付金額</th>
+                </tr>
+              </thead>
+              <tbody id="payment-table-body">
                 <tr>
                   <td colspan="3" style="text-align: center; color: var(--text-muted);">無統計資料</td>
                 </tr>
