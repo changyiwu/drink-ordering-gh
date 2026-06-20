@@ -6,9 +6,9 @@
   <title>作伙喝飲料！- 即時飲料訂購系統</title>
   
   <!-- SEO & Social Share (Open Graph) -->
-  <meta name="description" content="讓朋友和同事輕鬆一起訂購飲料的即時系統。填寫品項、姓名與冰度甜度，大家就能即時看到所有人的訂單，再也不怕訂錯或漏單！">
+  <meta name="description" content="讓朋友和同事輕鬆一起訂購飲料的即時系統。選擇喜歡的飲料店，大家就能即時看到所有人的訂單，再也不怕訂錯或漏單！">
   <meta property="og:title" content="作伙喝飲料！- 即時飲料訂購系統">
-  <meta property="og:description" content="輸入飲料、姓名與冰度甜度，即時連線看板讓所有人看到目前訂購情形，快來一起訂飲料吧！">
+  <meta property="og:description" content="選擇飲料店、輸入姓名與冰度甜度，即時連線看板讓所有人看到目前訂購情形，快來一起訂飲料吧！">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://changyiwu.github.io/drink-ordering-gh/">
   <meta property="og:image" content="https://changyiwu.github.io/drink-ordering-gh/drink_banner.png">
@@ -41,130 +41,70 @@
       <div class="header-title-container">
         <div class="logo-badge"><i class="fa-solid fa-mug-hot"></i></div>
         <h1>作伙喝飲料</h1>
-        <p class="subtitle">朋友同事專屬 · 即時訂單看板</p>
+        <p class="subtitle">朋友同事專屬 · 即時訂單看板平台</p>
       </div>
     </header>
 
     <main class="app-main">
-      <!-- Order Form Section -->
-      <section class="form-section glass-card" aria-labelledby="form-heading">
-        <h2 id="form-heading"><i class="fa-regular fa-pen-to-square"></i> 我要訂飲料</h2>
-        <form id="order-form" novalidate>
-          
-          <div class="input-group">
-            <label for="buyer-name"><i class="fa-regular fa-user"></i> 你的姓名 <span class="required">*</span></label>
-            <input type="text" id="buyer-name" placeholder="請輸入姓名 (例如：冠宇)" required autocomplete="name">
-            <span class="error-msg" id="name-error">請填寫姓名</span>
-          </div>
-
-          <div class="input-group">
-            <label for="drink-name"><i class="fa-solid fa-whiskey-glass"></i> 飲料品項 <span class="required">*</span></label>
-            <input type="text" id="drink-name" placeholder="請輸入飲料品項 (例如：珍珠奶茶)" required>
-            <span class="error-msg" id="drink-error">請填寫要喝的飲料</span>
-          </div>
-
-          <div class="form-row">
-            <div class="input-group width-half">
-              <label for="cup-count"><i class="fa-solid fa-hashtag"></i> 杯數 <span class="required">*</span></label>
-              <div class="number-stepper">
-                <button type="button" class="stepper-btn" id="stepper-minus"><i class="fa-solid fa-minus"></i></button>
-                <input type="number" id="cup-count" value="1" min="1" max="100" required>
-                <button type="button" class="stepper-btn" id="stepper-plus"><i class="fa-solid fa-plus"></i></button>
-              </div>
+      <section class="shop-selection-section glass-card" style="grid-column: 1 / -1;">
+        <h2><i class="fa-solid fa-store"></i> 請選擇要訂購的飲料店</h2>
+        <p class="section-desc" style="color: var(--text-muted); margin-bottom: 24px; font-size: 1rem;">點選下方飲料店即可進入專屬訂購頁面，與好友同事即時同步訂單！</p>
+        
+        <div class="shop-grid">
+          <a href="shop.html?shop=50lan" class="shop-card theme-50lan">
+            <div class="shop-card-content">
+              <div class="shop-logo"><i class="fa-solid fa-whiskey-glass"></i></div>
+              <h3>50嵐</h3>
+              <p>經典不敗 ‧ 四季春珍波椰</p>
             </div>
-
-            <div class="input-group width-half">
-              <label for="sweetness"><i class="fa-solid fa-cubes-stacked"></i> 糖量 <span class="required">*</span></label>
-              <div class="select-wrapper">
-                <select id="sweetness" required>
-                  <option value="" disabled selected>請選擇糖量</option>
-                  <option value="無糖">無糖 (0%)</option>
-                  <option value="一分糖">一分糖 (10%)</option>
-                  <option value="三分糖">三分糖 (30%)</option>
-                  <option value="五分糖">五分糖 (50%)</option>
-                  <option value="全糖">全糖 (100%)</option>
-                </select>
-                <i class="fa-solid fa-chevron-down select-arrow"></i>
-              </div>
-              <span class="error-msg" id="sweetness-error">請選擇糖量</span>
+            <div class="shop-card-action">
+              <span>進入訂購</span> <i class="fa-solid fa-chevron-right"></i>
             </div>
-          </div>
+          </a>
 
-          <div class="input-group">
-            <label for="ice-level"><i class="fa-solid fa-snowflake"></i> 冰塊量 <span class="required">*</span></label>
-            <div class="select-wrapper">
-              <select id="ice-level" required>
-                <option value="" disabled selected>請選擇冰塊量</option>
-                <option value="去冰">去冰 (No Ice)</option>
-                <option value="微冰">微冰 (Easy Ice)</option>
-                <option value="少冰">少冰 (Less Ice)</option>
-                <option value="正常冰">正常冰 (Regular Ice)</option>
-                <option value="熱飲">熱飲 (Hot)</option>
-              </select>
-              <i class="fa-solid fa-chevron-down select-arrow"></i>
+          <a href="shop.html?shop=chingshin" class="shop-card theme-chingshin">
+            <div class="shop-card-content">
+              <div class="shop-logo"><i class="fa-solid fa-leaf"></i></div>
+              <h3>清心福全</h3>
+              <p>手搖始祖 ‧ 隱藏版普洱與菁茶</p>
             </div>
-            <span class="error-msg" id="ice-error">請選擇冰塊量</span>
-          </div>
-
-          <button type="submit" class="submit-btn" id="submit-order-btn">
-            <span class="btn-text">送出訂單</span>
-            <span class="btn-icon"><i class="fa-solid fa-paper-plane"></i></span>
-          </button>
-        </form>
-      </section>
-
-      <!-- Orders Board Section -->
-      <section class="board-section glass-card" aria-labelledby="board-heading">
-        <div class="board-header">
-          <h2 id="board-heading"><i class="fa-solid fa-list-check"></i> 即時訂購看板</h2>
-          <div class="live-indicator">
-            <span class="pulse-dot"></span>
-            <span class="indicator-text">已連線</span>
-          </div>
-        </div>
-
-        <!-- Order Statistics -->
-        <div class="stats-container">
-          <div class="stat-card">
-            <div class="stat-icon icon-blue"><i class="fa-solid fa-user-group"></i></div>
-            <div class="stat-info">
-              <span class="stat-label">訂購總人數</span>
-              <span class="stat-value" id="stat-people">0</span>
+            <div class="shop-card-action">
+              <span>進入訂購</span> <i class="fa-solid fa-chevron-right"></i>
             </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon icon-orange"><i class="fa-solid fa-whiskey-glass"></i></div>
-            <div class="stat-info">
-              <span class="stat-label">飲料總杯數</span>
-              <span class="stat-value" id="stat-cups">0</span>
-            </div>
-          </div>
-        </div>
+          </a>
 
-        <!-- Orders List -->
-        <div class="orders-list-wrapper">
-          <div class="orders-table-header">
-            <span class="col-name">訂購人</span>
-            <span class="col-drink">飲料品項</span>
-            <span class="col-specs">規格 (糖量/冰塊)</span>
-            <span class="col-cups">數量</span>
-            <span class="col-action">操作</span>
-          </div>
-          
-          <div id="orders-list" class="orders-list">
-            <!-- Loading skeleton loader -->
-            <div class="skeleton-loader">
-              <div class="skeleton-row"></div>
-              <div class="skeleton-row"></div>
-              <div class="skeleton-row"></div>
+          <a href="shop.html?shop=coco" class="shop-card theme-coco">
+            <div class="shop-card-content">
+              <div class="shop-logo"><i class="fa-solid fa-ice-cream"></i></div>
+              <h3>CoCo 都可</h3>
+              <p>百香雙響炮 ‧ 奶茶三兄弟</p>
             </div>
-          </div>
+            <div class="shop-card-action">
+              <span>進入訂購</span> <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </a>
 
-          <div id="empty-state" class="empty-state hidden">
-            <div class="empty-icon"><i class="fa-solid fa-champagne-glasses"></i></div>
-            <h3>目前還沒有人訂購喔！</h3>
-            <p>填寫左側表單，成為今天第一個喝飲料的人吧！</p>
-          </div>
+          <a href="shop.html?shop=presotea" class="shop-card theme-presotea">
+            <div class="shop-card-content">
+              <div class="shop-logo"><i class="fa-solid fa-mug-hot"></i></div>
+              <h3>鮮茶道</h3>
+              <p>現點現泡 ‧ 琥珀奶茶與阿里山茶</p>
+            </div>
+            <div class="shop-card-action">
+              <span>進入訂購</span> <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </a>
+
+          <a href="shop.html?shop=mrwish" class="shop-card theme-mrwish">
+            <div class="shop-card-content">
+              <div class="shop-logo"><i class="fa-solid fa-lemon"></i></div>
+              <h3>Mr. Wish</h3>
+              <p>新鮮果茶 ‧ 光果茶與楊枝甘露</p>
+            </div>
+            <div class="shop-card-action">
+              <span>進入訂購</span> <i class="fa-solid fa-chevron-right"></i>
+            </div>
+          </a>
         </div>
       </section>
     </main>
@@ -173,11 +113,5 @@
       <p>© 2026 作伙喝飲料 App · 開源於 GitHub Pages</p>
     </footer>
   </div>
-
-  <!-- Notification Toast -->
-  <div id="toast" class="toast hidden" role="alert" aria-live="assertive"></div>
-
-  <!-- Firebase Script SDK and App Script -->
-  <script type="module" src="app.js"></script>
 </body>
 </html>

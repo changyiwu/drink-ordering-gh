@@ -8,11 +8,116 @@ import {
   orderBy, 
   serverTimestamp, 
   deleteDoc, 
-  doc 
+  doc,
+  where,
+  writeBatch,
+  getDocs
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
-// Firebase configuration from CLI output
+// Shops menu and metadata configuration
+const SHOPS_DATA = {
+  '50lan': {
+    name: '50嵐',
+    themeClass: 'theme-50lan',
+    menu: [
+      '四季春珍波椰 (1號)',
+      '波霸紅茶拿鐵',
+      '冰淇淋紅茶',
+      '多多綠茶',
+      '重焙烏龍拿鐵',
+      '8冰綠',
+      '混珠奶烏',
+      '芒果青',
+      '珍珠阿華田',
+      '四季奶青瑪奇朵'
+    ]
+  },
+  'chingshin': {
+    name: '清心福全',
+    themeClass: 'theme-chingshin',
+    menu: [
+      '珍珠蜂蜜鮮奶普洱',
+      '優多綠茶',
+      '烏龍綠茶',
+      '珍珠奶茶',
+      '錫蘭奶紅',
+      '雙Q百香果綠茶',
+      '蜜桃凍紅茶',
+      '梅子綠茶'
+    ]
+  },
+  'coco': {
+    name: 'CoCo 都可',
+    themeClass: 'theme-coco',
+    menu: [
+      '百香雙響炮',
+      '奶茶三兄弟',
+      '葡萄柚果粒茶',
+      '21歲輕檸烏龍',
+      '珍珠奶茶',
+      '四季珍椰青',
+      '紅柚雙響炮'
+    ]
+  },
+  'presotea': {
+    name: '鮮茶道',
+    themeClass: 'theme-presotea',
+    menu: [
+      '琥珀奶茶',
+      '墾丁冰茶',
+      '焙茶烤奶',
+      '招牌水果茶',
+      '阿里山冰茶',
+      '伯爵奶茶家族',
+      '紅心芭樂汁'
+    ]
+  },
+  'mrwish': {
+    name: 'Mr. Wish',
+    themeClass: 'theme-mrwish',
+    menu: [
+      '光果茶',
+      '楊枝甘露',
+      '愛文芒果冰沙',
+      '芒果厚奶',
+      '青果茶',
+      '紅心芭樂梅',
+      '波霸珍珠鮮奶茶',
+      '湖塩太妃烤奶',
+      '芋頭QQ鮮奶'
+    ]
+  }
+};
+
+// Parse Query Parameters
+const urlParams = new URLSearchParams(window.location.search);
+const shopId = urlParams.get('shop');
+
+// Redirect if shopId is invalid
+if (!shopId || !SHOPS_DATA[shopId]) {
+  alert('請選擇有效的飲料店！');
+  window.location.href = 'index.html';
+}
+
+const shopInfo = SHOPS_DATA[shopId];
+
+// Dynamically set shop theme, title and page head title
+document.body.classList.add(shopInfo.themeClass);
+document.title = `作伙喝飲料！ - ${shopInfo.name}`;
+document.getElementById('shop-title').textContent = shopInfo.name;
+document.getElementById('shop-subtitle').textContent = `朋友同事專屬 · ${shopInfo.name} 即時訂單看板`;
+
+// Dynamically populate drink options
+const drinkSelect = document.getElementById('drink-name');
+shopInfo.menu.forEach(drink => {
+  const option = document.createElement('option');
+  option.value = drink;
+  option.textContent = drink;
+  drinkSelect.appendChild(option);
+});
+
+// Firebase configuration
 const firebaseConfig = {
   projectId: "drink-ordering-chang",
   appId: "1:230592197281:web:0d8c834040877bdde836e0",
@@ -37,16 +142,12 @@ signInAnonymously(auth)
   })
   .catch((error) => {
     console.error('Firebase Auth failed:', error);
-    // Since toast function is defined later in the file, call it safely after DOM is loaded or when error occurs
-    window.addEventListener('DOMContentLoaded', () => {
-      showToast('❌ 驗證失敗，無法連接資料庫！', 'error');
-    });
+    showToast('❌ 驗證失敗，無法連接資料庫！', 'error');
   });
 
 // DOM Elements
 const orderForm = document.getElementById('order-form');
 const buyerNameInput = document.getElementById('buyer-name');
-const drinkNameInput = document.getElementById('drink-name');
 const cupCountInput = document.getElementById('cup-count');
 const sweetnessSelect = document.getElementById('sweetness');
 const iceLevelSelect = document.getElementById('ice-level');
@@ -59,6 +160,8 @@ const emptyState = document.getElementById('empty-state');
 const statPeople = document.getElementById('stat-people');
 const statCups = document.getElementById('stat-cups');
 const toast = document.getElementById('toast');
+const summaryTableBody = document.getElementById('summary-table-body');
+const clearAllBtn = document.getElementById('clear-all-btn');
 
 // Custom Cup Count Stepper Logic
 stepperMinusBtn.addEventListener('click', () => {
@@ -90,7 +193,6 @@ function showToast(message, type = 'success') {
   toast.className = `toast ${type}`;
   toast.classList.remove('hidden');
   
-  // Clear any existing timeout
   if (window.toastTimeout) {
     clearTimeout(window.toastTimeout);
   }
@@ -116,8 +218,8 @@ orderForm.addEventListener('submit', async (e) => {
   }
 
   // 2. Drink Check
-  if (!drinkNameInput.value.trim()) {
-    drinkNameInput.closest('.input-group').classList.add('invalid');
+  if (!drinkSelect.value) {
+    drinkSelect.closest('.input-group').classList.add('invalid');
     isValid = false;
   }
 
@@ -151,10 +253,12 @@ orderForm.addEventListener('submit', async (e) => {
   submitBtn.querySelector('.btn-text').textContent = '送出中...';
 
   try {
-    // Add document to Firestore
+    // Add document to Firestore (including shopId and shopName)
     await addDoc(ordersCollection, {
+      shopId: shopId,
+      shopName: shopInfo.name,
       buyerName: buyerNameInput.value.trim(),
-      drinkName: drinkNameInput.value.trim(),
+      drinkName: drinkSelect.value,
       cups: cups,
       sweetness: sweetnessSelect.value,
       ice: iceLevelSelect.value,
@@ -164,7 +268,7 @@ orderForm.addEventListener('submit', async (e) => {
     showToast('🎉 訂單已成功送出！');
     
     // Clear inputs (except name for convenience)
-    drinkNameInput.value = '';
+    drinkSelect.value = '';
     cupCountInput.value = '1';
     sweetnessSelect.value = '';
     iceLevelSelect.value = '';
@@ -191,17 +295,63 @@ window.deleteOrder = async (id, buyerName) => {
   }
 };
 
-// Listen for Real-time orders updates from Firestore
-const q = query(ordersCollection, orderBy('createdAt', 'desc'));
+// Clear All Shop Orders logic
+clearAllBtn.addEventListener('click', async () => {
+  if (confirm(`⚠️ 警告：確定要一鍵清除所有《${shopInfo.name}》的訂單嗎？此動作將無法復原！`)) {
+    clearAllBtn.disabled = true;
+    clearAllBtn.querySelector('span').textContent = '清除中...';
+    try {
+      // Get all orders for the current shop
+      const q = query(ordersCollection, where('shopId', '==', shopId));
+      const querySnapshot = await getDocs(q);
+      
+      if (querySnapshot.empty) {
+        showToast('目前沒有可清除的訂單', 'error');
+        clearAllBtn.disabled = false;
+        clearAllBtn.querySelector('span').textContent = '一鍵清除本頁訂單';
+        return;
+      }
+      
+      const batch = writeBatch(db);
+      querySnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+      showToast(`🗑️ 已成功清除所有《${shopInfo.name}》的訂單！`);
+    } catch (error) {
+      console.error('Error clearing documents: ', error);
+      showToast('❌ 清除失敗，請再試一次', 'error');
+    } finally {
+      clearAllBtn.disabled = false;
+      clearAllBtn.querySelector('span').textContent = '一鍵清除本頁訂單';
+    }
+  }
+});
+
+// Listen for Real-time orders updates from Firestore for this specific shop
+const q = query(
+  ordersCollection, 
+  where('shopId', '==', shopId),
+  orderBy('createdAt', 'desc')
+);
 
 onSnapshot(q, (snapshot) => {
   // Clear loading state or current list
   ordersList.innerHTML = '';
+  summaryTableBody.innerHTML = '';
   
   if (snapshot.empty) {
     emptyState.classList.remove('hidden');
     statPeople.textContent = '0';
     statCups.textContent = '0';
+    
+    // Empty stats table
+    summaryTableBody.innerHTML = `
+      <tr>
+        <td colspan="3" style="text-align: center; color: var(--text-muted);">無統計資料</td>
+      </tr>
+    `;
     return;
   }
   
@@ -210,16 +360,32 @@ onSnapshot(q, (snapshot) => {
   let totalPeople = 0;
   let totalCups = 0;
   const uniqueNames = new Set();
+  const summaryMap = {};
   
   snapshot.forEach((doc) => {
     const data = doc.data();
     const id = doc.id;
     
-    // Count stats
-    totalCups += data.cups || 0;
+    const cups = parseInt(data.cups) || 1;
+    totalCups += cups;
     if (data.buyerName) {
       uniqueNames.add(data.buyerName.trim());
     }
+    
+    // Grouping for Statistics Table
+    const drinkName = data.drinkName || '未填寫';
+    const sweetness = data.sweetness || '未選';
+    const ice = data.ice || '未選';
+    const specKey = `${drinkName} (${sweetness}/${ice})`;
+    
+    if (!summaryMap[specKey]) {
+      summaryMap[specKey] = {
+        drinkName: drinkName,
+        specs: `${sweetness} / ${ice}`,
+        cups: 0
+      };
+    }
+    summaryMap[specKey].cups += cups;
     
     // Create list row element
     const orderRow = document.createElement('div');
@@ -227,18 +393,17 @@ onSnapshot(q, (snapshot) => {
     
     // Safe output escaping
     const buyerName = escapeHtml(data.buyerName || '無名氏');
-    const drinkName = escapeHtml(data.drinkName || '未填寫');
-    const sweetness = escapeHtml(data.sweetness || '未選');
-    const ice = escapeHtml(data.ice || '未選');
-    const cups = parseInt(data.cups) || 1;
+    const displayDrink = escapeHtml(drinkName);
+    const displaySweetness = escapeHtml(sweetness);
+    const displayIce = escapeHtml(ice);
     
     orderRow.innerHTML = `
       <div class="col-name">${buyerName}</div>
-      <div class="col-drink">${drinkName}</div>
+      <div class="col-drink">${displayDrink}</div>
       <div class="col-specs">
         <div class="badge-wrapper">
-          <span class="badge badge-sweetness">${sweetness}</span>
-          <span class="badge badge-ice">${ice}</span>
+          <span class="badge badge-sweetness">${displaySweetness}</span>
+          <span class="badge badge-ice">${displayIce}</span>
         </div>
       </div>
       <div class="col-cups">
@@ -253,6 +418,28 @@ onSnapshot(q, (snapshot) => {
     
     ordersList.appendChild(orderRow);
   });
+  
+  // Render consolidated summary table
+  const sortedKeys = Object.keys(summaryMap).sort((a, b) => a.localeCompare(b));
+  sortedKeys.forEach(key => {
+    const item = summaryMap[key];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(item.drinkName)}</td>
+      <td>${escapeHtml(item.specs)}</td>
+      <td style="text-align: center; font-weight: 700;">${item.cups} 杯</td>
+    `;
+    summaryTableBody.appendChild(tr);
+  });
+  
+  // Add total row to summary table
+  const totalTr = document.createElement('tr');
+  totalTr.className = 'summary-row-total';
+  totalTr.innerHTML = `
+    <td colspan="2" style="text-align: right;">總計：</td>
+    <td style="text-align: center;">${totalCups} 杯</td>
+  `;
+  summaryTableBody.appendChild(totalTr);
   
   // Update dashboard stats
   statPeople.textContent = uniqueNames.size;
