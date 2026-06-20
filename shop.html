@@ -76,12 +76,14 @@
 
           <div class="form-row">
             <div class="input-group width-half">
-              <label for="cup-count"><i class="fa-solid fa-hashtag"></i> 杯數 <span class="required">*</span></label>
-              <div class="number-stepper">
-                <button type="button" class="stepper-btn" id="stepper-minus"><i class="fa-solid fa-minus"></i></button>
-                <input type="number" id="cup-count" value="1" min="1" max="100" required>
-                <button type="button" class="stepper-btn" id="stepper-plus"><i class="fa-solid fa-plus"></i></button>
+              <label for="cup-size"><i class="fa-solid fa-expand"></i> 容量 <span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select id="cup-size" required>
+                  <option value="" disabled selected>請選擇容量</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
               </div>
+              <span class="error-msg" id="size-error">請選擇容量</span>
             </div>
 
             <div class="input-group width-half">
@@ -101,20 +103,31 @@
             </div>
           </div>
 
-          <div class="input-group">
-            <label for="ice-level"><i class="fa-solid fa-snowflake"></i> 冰塊量 <span class="required">*</span></label>
-            <div class="select-wrapper">
-              <select id="ice-level" required>
-                <option value="" disabled selected>請選擇冰塊量</option>
-                <option value="去冰">去冰 (No Ice)</option>
-                <option value="微冰">微冰 (Easy Ice)</option>
-                <option value="少冰">少冰 (Less Ice)</option>
-                <option value="正常冰">正常冰 (Regular Ice)</option>
-                <option value="熱飲">熱飲 (Hot)</option>
-              </select>
-              <i class="fa-solid fa-chevron-down select-arrow"></i>
+          <div class="form-row">
+            <div class="input-group width-half">
+              <label for="ice-level"><i class="fa-solid fa-snowflake"></i> 冰塊量 <span class="required">*</span></label>
+              <div class="select-wrapper">
+                <select id="ice-level" required>
+                  <option value="" disabled selected>請選擇冰塊量</option>
+                  <option value="去冰">去冰 (No Ice)</option>
+                  <option value="微冰">微冰 (Easy Ice)</option>
+                  <option value="少冰">少冰 (Less Ice)</option>
+                  <option value="正常冰">正常冰 (Regular Ice)</option>
+                  <option value="熱飲">熱飲 (Hot)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down select-arrow"></i>
+              </div>
+              <span class="error-msg" id="ice-error">請選擇冰塊量</span>
             </div>
-            <span class="error-msg" id="ice-error">請選擇冰塊量</span>
+
+            <div class="input-group width-half">
+              <label for="cup-count"><i class="fa-solid fa-hashtag"></i> 杯數 <span class="required">*</span></label>
+              <div class="number-stepper">
+                <button type="button" class="stepper-btn" id="stepper-minus"><i class="fa-solid fa-minus"></i></button>
+                <input type="number" id="cup-count" value="1" min="1" max="100" required>
+                <button type="button" class="stepper-btn" id="stepper-plus"><i class="fa-solid fa-plus"></i></button>
+              </div>
+            </div>
           </div>
 
           <button type="submit" class="submit-btn" id="submit-order-btn">

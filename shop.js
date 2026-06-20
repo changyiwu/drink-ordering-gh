@@ -15,111 +15,112 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
-// Shops menu and metadata configuration
+// Shops menu and metadata configuration (Central Taiwan Regional Prices)
 const SHOPS_DATA = {
   '50lan': {
     name: '50嵐',
     themeClass: 'theme-50lan',
     menu: [
-      { name: '四季春珍波椰 (1號)', price: 45 },
-      { name: '波霸奶茶', price: 60 },
-      { name: '波霸紅茶拿鐵', price: 75 },
-      { name: '冰淇淋紅茶', price: 65 },
-      { name: '多多綠茶', price: 65 },
-      { name: '重焙烏龍拿鐵', price: 75 },
-      { name: '8冰綠', price: 60 },
-      { name: '混珠奶烏', price: 60 },
-      { name: '芒果青', price: 55 },
-      { name: '珍珠阿華田', price: 65 },
-      { name: '四季奶青瑪奇朵', price: 60 },
-      { name: '茉莉綠茶', price: 40 },
-      { name: '四季春茶', price: 40 },
-      { name: '黃金烏龍茶', price: 40 },
-      { name: '阿薩姆紅茶', price: 40 },
-      { name: '燕麥奶茶', price: 65 }
+      { name: '四季春珍波椰 (1號)', prices: { M: 35, L: 45 } },
+      { name: '波霸奶茶', prices: { M: 45, L: 55 } },
+      { name: '珍珠奶茶', prices: { M: 45, L: 55 } },
+      { name: '波霸紅茶拿鐵', prices: { M: 55, L: 65 } },
+      { name: '珍珠紅茶拿鐵', prices: { M: 55, L: 65 } },
+      { name: '冰淇淋紅茶', prices: { M: 50, L: 60 } },
+      { name: '多多綠茶', prices: { M: 45, L: 55 } },
+      { name: '重焙烏龍拿鐵', prices: { M: 55, L: 65 } },
+      { name: '8冰綠', prices: { M: 45, L: 55 } },
+      { name: '混珠奶烏', prices: { M: 45, L: 55 } },
+      { name: '芒果青', prices: { M: 40, L: 50 } },
+      { name: '珍珠阿華田', prices: { M: 50, L: 60 } },
+      { name: '四季奶青瑪奇朵', prices: { M: 45, L: 55 } },
+      { name: '茉莉綠茶', prices: { M: 30, L: 35 } },
+      { name: '四季春茶', prices: { M: 30, L: 35 } },
+      { name: '黃金烏龍茶', prices: { M: 30, L: 35 } },
+      { name: '阿薩姆紅茶', prices: { M: 30, L: 35 } }
     ]
   },
   'chingshin': {
     name: '清心福全',
     themeClass: 'theme-chingshin',
     menu: [
-      { name: '珍珠蜂蜜鮮奶普洱', price: 75 },
-      { name: '優多綠茶', price: 55 },
-      { name: '烏龍綠茶', price: 45 },
-      { name: '波霸奶茶', price: 55 },
-      { name: '錫蘭奶紅', price: 50 },
-      { name: '雙Q百香果綠茶', price: 65 },
-      { name: '蜜桃凍紅茶', price: 55 },
-      { name: '梅子綠茶', price: 50 },
-      { name: '極品菁茶', price: 40 },
-      { name: '特選普洱茶', price: 40 },
-      { name: '翡翠烏龍茶', price: 40 },
-      { name: '椰果奶茶', price: 55 },
-      { name: '布丁奶茶', price: 65 },
-      { name: '冬瓜檸檬', price: 55 },
-      { name: '鮮奶拿鐵', price: 70 }
+      { name: '珍珠蜂蜜鮮奶普洱', prices: { M: 60, L: 70 } },
+      { name: '優多綠茶', prices: { M: 40, L: 50 } },
+      { name: '烏龍綠茶', prices: { M: 30, L: 35 } },
+      { name: '波霸奶茶', prices: { M: 40, L: 50 } },
+      { name: '錫蘭奶紅', prices: { M: 40, L: 45 } },
+      { name: '雙Q百香果綠茶', prices: { M: 50, L: 60 } },
+      { name: '蜜桃凍紅茶', prices: { M: 40, L: 50 } },
+      { name: '梅子綠茶', prices: { M: 35, L: 45 } },
+      { name: '極品菁茶', prices: { M: 30, L: 35 } },
+      { name: '特選普洱茶', prices: { M: 30, L: 35 } },
+      { name: '翡翠烏龍茶', prices: { M: 30, L: 35 } },
+      { name: '椰果奶茶', prices: { M: 40, L: 50 } },
+      { name: '布丁奶茶', prices: { M: 50, L: 60 } },
+      { name: '冬瓜檸檬', prices: { M: 40, L: 50 } },
+      { name: '鮮奶拿鐵', prices: { M: 55, L: 65 } }
     ]
   },
   'coco': {
     name: 'CoCo 都可',
     themeClass: 'theme-coco',
     menu: [
-      { name: '百香雙響炮', price: 65 },
-      { name: '奶茶三兄弟', price: 65 },
-      { name: '葡萄柚果粒茶', price: 70 },
-      { name: '21歲輕檸烏龍', price: 55 },
-      { name: '珍珠奶茶', price: 55 },
-      { name: '四季珍椰青', price: 55 },
-      { name: '紅柚雙響炮', price: 70 },
-      { name: '手採紅茶', price: 40 },
-      { name: '茉莉綠茶', price: 40 },
-      { name: '四季春茶', price: 40 },
-      { name: '布丁奶茶', price: 65 },
-      { name: '法式奶蓋綠茶', price: 60 },
-      { name: '檸檬冬瓜露', price: 50 },
-      { name: '芋頭牛奶', price: 70 },
-      { name: '金桔檸檬', price: 55 }
+      { name: '百香雙響炮', prices: { L: 60 } },
+      { name: '奶茶三兄弟', prices: { L: 60 } },
+      { name: '葡萄柚果粒茶', prices: { L: 65 } },
+      { name: '21歲輕檸烏龍', prices: { L: 50 } },
+      { name: '珍珠奶茶', prices: { M: 40, L: 50 } },
+      { name: '四季珍椰青', prices: { M: 40, L: 50 } },
+      { name: '紅柚雙響炮', prices: { L: 65 } },
+      { name: '手採紅茶', prices: { M: 30, L: 35 } },
+      { name: '茉莉綠茶', prices: { M: 30, L: 35 } },
+      { name: '四季春茶', prices: { M: 30, L: 35 } },
+      { name: '布丁奶茶', prices: { M: 50, L: 60 } },
+      { name: '法式奶蓋綠茶', prices: { L: 55 } },
+      { name: '檸檬冬瓜露', prices: { M: 40, L: 45 } },
+      { name: '芋頭牛奶', prices: { M: 60, L: 70 } },
+      { name: '金桔檸檬', prices: { M: 45, L: 50 } }
     ]
   },
   'presotea': {
     name: '鮮茶道',
     themeClass: 'theme-presotea',
     menu: [
-      { name: '琥珀奶茶', price: 55 },
-      { name: '墾丁冰茶', price: 55 },
-      { name: '焙茶烤奶', price: 60 },
-      { name: '招牌水果茶', price: 65 },
-      { name: '阿里山冰茶', price: 45 },
-      { name: '伯爵奶茶家族', price: 65 },
-      { name: '紅心芭樂汁', price: 60 },
-      { name: '日月潭紅玉', price: 50 },
-      { name: '文山清茶', price: 40 },
-      { name: '四季春茶', price: 40 },
-      { name: '玄米茶拿鐵', price: 70 },
-      { name: '百香雙Q', price: 60 },
-      { name: '冬瓜檸檬', price: 55 },
-      { name: '黑糖珍珠鮮奶', price: 75 }
+      { name: '琥珀奶茶', prices: { M: 45, L: 50 } },
+      { name: '墾丁冰茶', prices: { M: 45, L: 50 } },
+      { name: '焙茶烤奶', prices: { M: 50, L: 55 } },
+      { name: '招牌水果茶', prices: { M: 55, L: 60 } },
+      { name: '阿里山冰茶', prices: { M: 35, L: 40 } },
+      { name: '伯爵奶茶家族', prices: { M: 55, L: 60 } },
+      { name: '紅心芭樂汁', prices: { M: 50, L: 55 } },
+      { name: '日月潭紅玉', prices: { M: 30, L: 35 } },
+      { name: '文山清茶', prices: { M: 30, L: 35 } },
+      { name: '四季春茶', prices: { M: 30, L: 35 } },
+      { name: '玄米茶拿鐵', prices: { M: 60, L: 65 } },
+      { name: '百香雙Q', prices: { M: 50, L: 55 } },
+      { name: '冬瓜檸檬', prices: { M: 45, L: 50 } },
+      { name: '黑糖珍珠鮮奶', prices: { M: 65, L: 70 } }
     ]
   },
   'mrwish': {
     name: 'Mr. Wish',
     themeClass: 'theme-mrwish',
     menu: [
-      { name: '光果茶', price: 70 },
-      { name: '楊枝甘露', price: 85 },
-      { name: '愛文芒果冰沙', price: 80 },
-      { name: '芒果厚奶', price: 85 },
-      { name: '青果茶', price: 65 },
-      { name: '紅心芭樂梅', price: 65 },
-      { name: '波霸珍珠鮮奶茶', price: 70 },
-      { name: '湖塩太妃烤奶', price: 65 },
-      { name: '芋頭QQ鮮奶', price: 80 },
-      { name: '高山金萱茶', price: 40 },
-      { name: '熟成紅茶', price: 40 },
-      { name: '奇異果綠茶', price: 65 },
-      { name: '鮮榨柳橙綠', price: 70 },
-      { name: '冬瓜青茶', price: 45 },
-      { name: '珍珠奶茶', price: 55 }
+      { name: '光果茶', prices: { L: 65 } },
+      { name: '楊枝甘露', prices: { L: 80 } },
+      { name: '愛文芒果冰沙', prices: { L: 75 } },
+      { name: '芒果厚奶', prices: { L: 80 } },
+      { name: '青果茶', prices: { L: 60 } },
+      { name: '紅心芭樂梅', prices: { L: 60 } },
+      { name: '波霸珍珠鮮奶茶', prices: { M: 60, L: 65 } },
+      { name: '湖塩太妃烤奶', prices: { M: 55, L: 60 } },
+      { name: '芋頭QQ鮮奶', prices: { M: 70, L: 75 } },
+      { name: '高山金萱茶', prices: { M: 30, L: 35 } },
+      { name: '熟成紅茶', prices: { M: 30, L: 35 } },
+      { name: '奇異果綠茶', prices: { L: 60 } },
+      { name: '鮮榨柳橙綠', prices: { L: 65 } },
+      { name: '冬瓜青茶', prices: { M: 35, L: 40 } },
+      { name: '珍珠奶茶', prices: { M: 45, L: 50 } }
     ]
   }
 };
@@ -143,21 +144,53 @@ document.getElementById('shop-title').textContent = shopInfo.name;
 document.getElementById('shop-subtitle').textContent = `朋友同事專屬 · ${shopInfo.name} 即時訂單看板`;
 
 // Fallback helper to get drink price for old orders
-function getDrinkPrice(shop, drink) {
+function getDrinkPrice(shop, drink, size = 'L') {
   const shopData = SHOPS_DATA[shop];
   if (!shopData) return 0;
   const item = shopData.menu.find(m => m.name === drink);
-  return item ? item.price : 0;
+  if (!item) return 0;
+  if (item.prices) {
+    return item.prices[size] || item.prices['L'] || item.prices['M'] || 0;
+  }
+  return item.price || 0;
 }
 
 // Dynamically populate drink options
 const drinkSelect = document.getElementById('drink-name');
+const cupSizeSelect = document.getElementById('cup-size');
+
 shopInfo.menu.forEach(drink => {
   const option = document.createElement('option');
   option.value = drink.name;
-  option.setAttribute('data-price', drink.price);
-  option.textContent = `${drink.name} ($${drink.price})`;
+  option.textContent = drink.name;
   drinkSelect.appendChild(option);
+});
+
+// Dynamic size options loading based on chosen drink
+drinkSelect.addEventListener('change', () => {
+  const selectedDrinkName = drinkSelect.value;
+  const selectedDrink = shopInfo.menu.find(d => d.name === selectedDrinkName);
+  
+  // Clear old options
+  cupSizeSelect.innerHTML = '<option value="" disabled selected>請選擇容量</option>';
+  
+  if (selectedDrink && selectedDrink.prices) {
+    Object.keys(selectedDrink.prices).forEach(size => {
+      const price = selectedDrink.prices[size];
+      const option = document.createElement('option');
+      option.value = size;
+      option.setAttribute('data-price', price);
+      const sizeLabel = size === 'L' ? '大杯 (L)' : '中杯 (M)';
+      option.textContent = `${sizeLabel} - $${price}`;
+      cupSizeSelect.appendChild(option);
+    });
+    
+    // Auto-select size if there's only one option
+    const sizeKeys = Object.keys(selectedDrink.prices);
+    if (sizeKeys.length === 1) {
+      cupSizeSelect.value = sizeKeys[0];
+    }
+  }
 });
 
 // Firebase configuration
@@ -285,6 +318,12 @@ orderForm.addEventListener('submit', async (e) => {
     isValid = false;
   }
 
+  // 6. Size Check
+  if (!cupSizeSelect.value) {
+    cupSizeSelect.closest('.input-group').classList.add('invalid');
+    isValid = false;
+  }
+
   if (!isValid) {
     showToast('請填寫所有必要欄位喔！', 'error');
     return;
@@ -296,15 +335,17 @@ orderForm.addEventListener('submit', async (e) => {
   submitBtn.querySelector('.btn-text').textContent = '送出中...';
 
   try {
-    const selectedOption = drinkSelect.options[drinkSelect.selectedIndex];
-    const price = parseInt(selectedOption.getAttribute('data-price')) || 0;
+    const size = cupSizeSelect.value;
+    const selectedSizeOption = cupSizeSelect.options[cupSizeSelect.selectedIndex];
+    const price = parseInt(selectedSizeOption.getAttribute('data-price')) || 0;
 
-    // Add document to Firestore (including shopId, shopName, price)
+    // Add document to Firestore (including shopId, shopName, price, size)
     await addDoc(ordersCollection, {
       shopId: shopId,
       shopName: shopInfo.name,
       buyerName: buyerNameInput.value.trim(),
       drinkName: drinkSelect.value,
+      size: size,
       price: price,
       cups: cups,
       sweetness: sweetnessSelect.value,
@@ -316,6 +357,7 @@ orderForm.addEventListener('submit', async (e) => {
     
     // Clear inputs (except name for convenience)
     drinkSelect.value = '';
+    cupSizeSelect.innerHTML = '<option value="" disabled selected>請選擇容量</option>';
     cupCountInput.value = '1';
     sweetnessSelect.value = '';
     iceLevelSelect.value = '';
@@ -434,7 +476,8 @@ onSnapshot(q, (snapshot) => {
     const id = order.id;
     const cups = parseInt(order.cups) || 1;
     const drinkName = order.drinkName || '未填寫';
-    const price = parseInt(order.price) || getDrinkPrice(shopId, drinkName);
+    const size = order.size || 'L';
+    const price = parseInt(order.price) || getDrinkPrice(shopId, drinkName, size);
     const subtotal = price * cups;
     
     totalCups += cups;
@@ -444,14 +487,15 @@ onSnapshot(q, (snapshot) => {
       uniqueNames.add(order.buyerName.trim());
     }
     
-    // Grouping for Drink Summary Table
+    // Grouping for Drink Summary Table (By Item + Size + Sweetness + Ice)
     const sweetness = order.sweetness || '未選';
     const ice = order.ice || '未選';
-    const specKey = `${drinkName} (${sweetness}/${ice})`;
+    const specKey = `${drinkName} (${size}) (${sweetness}/${ice})`;
     
     if (!summaryMap[specKey]) {
       summaryMap[specKey] = {
         drinkName: drinkName,
+        size: size,
         price: price,
         specs: `${sweetness} / ${ice}`,
         cups: 0,
@@ -470,7 +514,8 @@ onSnapshot(q, (snapshot) => {
         total: 0
       };
     }
-    paymentMap[buyer].items.push(`${drinkName} ($${price}) x${cups}`);
+    const sizeLabelBrief = size === 'L' ? '大' : '中';
+    paymentMap[buyer].items.push(`${drinkName} (${sizeLabelBrief} · $${price}) x${cups}`);
     paymentMap[buyer].total += subtotal;
     
     // Create list row element
@@ -482,12 +527,12 @@ onSnapshot(q, (snapshot) => {
     const displayDrink = escapeHtml(drinkName);
     const displaySweetness = escapeHtml(sweetness);
     const displayIce = escapeHtml(ice);
+    const sizeLabel = size === 'L' ? '大杯' : '中杯';
     
     orderRow.innerHTML = `
       <div class="col-name">${buyerName}</div>
       <div class="col-drink">
-        ${displayDrink}
-        <span style="font-size: 0.8rem; opacity: 0.75; display: block; font-weight: 500;">單價: $${price}</span>
+        ${displayDrink} (${sizeLabel} · $${price})
       </div>
       <div class="col-specs">
         <div class="badge-wrapper">
@@ -515,8 +560,8 @@ onSnapshot(q, (snapshot) => {
     const item = summaryMap[key];
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${escapeHtml(item.drinkName)} <span style="font-size: 0.8rem; opacity: 0.75;">($${item.price})</span></td>
-      <td>${escapeHtml(item.specs)}</td>
+      <td>${escapeHtml(item.drinkName)}</td>
+      <td><span class="badge badge-sweetness">${item.size === 'L' ? '大杯 (L) - $' + item.price : '中杯 (M) - $' + item.price}</span> / ${escapeHtml(item.specs)}</td>
       <td style="text-align: center; font-weight: 700;">${item.cups} 杯</td>
       <td style="text-align: center; font-weight: 700; color: var(--primary-color);">$${item.total}</td>
     `;
