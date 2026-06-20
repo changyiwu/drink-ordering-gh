@@ -34,7 +34,8 @@ document.body.classList.add(shopInfo.themeClass);
 document.title = `作伙喝飲料！ - ${shopInfo.name}`;
 document.getElementById('shop-title').textContent = shopInfo.name;
 document.getElementById('shop-subtitle').textContent = `朋友同事專屬 · ${shopInfo.name} 即時訂單看板`;
-document.getElementById('shop-logo-container').innerHTML = `<img src="logo_${shopId}.png" alt="${shopInfo.name} Logo">`;
+const logoExt = shopId === 'mrwish' ? 'svg' : 'png';
+document.getElementById('shop-logo-container').innerHTML = `<img src="logo_${shopId}.${logoExt}" alt="${shopInfo.name} Logo">`;
 
 // Fallback helper to get drink price for old orders
 function getDrinkPrice(shop, drink, size = 'L') {
