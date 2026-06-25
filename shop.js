@@ -11,7 +11,8 @@ import {
   doc,
   where,
   writeBatch,
-  getDocs
+  getDocs,
+  setDoc
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
@@ -175,6 +176,11 @@ function showToast(message, type = 'success') {
 orderForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   
+  if (!auth.currentUser) {
+    showToast('❌ 尚未完成身份驗證，請稍後再試！', 'error');
+    return;
+  }
+  
   let isValid = true;
 
   // Reset errors
@@ -232,8 +238,9 @@ orderForm.addEventListener('submit', async (e) => {
     const selectedSizeOption = cupSizeSelect.options[cupSizeSelect.selectedIndex];
     const price = parseInt(selectedSizeOption.getAttribute('data-price')) || 0;
 
-    // Add document to Firestore (including shopId, shopName, price, size)
+    // Add document to Firestore (including shopId, shopName, price, size, userId)
     await addDoc(ordersCollection, {
+      userId: auth.currentUser.uid,
       shopId: shopId,
       shopName: shopInfo.name,
       buyerName: buyerNameInput.value.trim(),
@@ -279,35 +286,58 @@ window.deleteOrder = async (id, buyerName) => {
 
 // Clear All Shop Orders logic
 clearAllBtn.addEventListener('click', async () => {
-  if (confirm(`⚠️ 警告：確定要一鍵清除所有《${shopInfo.name}》的訂單嗎？此動作將無法復原！`)) {
-    clearAllBtn.disabled = true;
-    clearAllBtn.querySelector('span').textContent = '清除中...';
-    try {
-      // Get all orders for the current shop
-      const q = query(ordersCollection, where('shopId', '==', shopId));
-      const querySnapshot = await getDocs(q);
-      
-      if (querySnapshot.empty) {
-        showToast('目前沒有可清除的訂單', 'error');
-        clearAllBtn.disabled = false;
-        clearAllBtn.querySelector('span').textContent = '一鍵清除本頁訂單';
-        return;
-      }
-      
-      const batch = writeBatch(db);
-      querySnapshot.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-      
-      await batch.commit();
-      showToast(`🗑️ 已成功清除所有《${shopInfo.name}》的訂單！`);
-    } catch (error) {
-      console.error('Error clearing documents: ', error);
-      showToast('❌ 清除失敗，請再試一次', 'error');
-    } finally {
-      clearAllBtn.disabled = false;
-      clearAllBtn.querySelector('span').textContent = '一鍵清除本頁訂單';
+  if (!auth.currentUser) {
+    showToast('❌ 尚未完成身份驗證，請稍後再試！', 'error');
+    return;
+  }
+
+  const password = prompt(`⚠️ 警告：此動作將清除所有《${shopInfo.name}》的訂單！\n請輸入管理員密碼以確認清除：`);
+  if (password === null) return; // User clicked Cancel
+  
+  if (!password.trim()) {
+    showToast('請輸入密碼！', 'error');
+    return;
+  }
+
+  clearAllBtn.disabled = true;
+  clearAllBtn.querySelector('span').textContent = '清除中...';
+  
+  const tempAuthRef = doc(db, 'admin_auth', auth.currentUser.uid);
+  
+  try {
+    // 寫入使用者輸入的密碼至臨時授權文件
+    await setDoc(tempAuthRef, { password: password });
+    
+    // 獲取該店家的所有訂單
+    const q = query(ordersCollection, where('shopId', '==', shopId));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      showToast('目前沒有可清除的訂單', 'error');
+      await deleteDoc(tempAuthRef);
+      return;
     }
+    
+    const batch = writeBatch(db);
+    querySnapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    
+    // 執行批次刪除（此時 Firestore 安全規則會至 admin_auth 與 config/admin 比對密碼）
+    await batch.commit();
+    showToast(`🗑️ 已成功清除所有《${shopInfo.name}》的訂單！`);
+  } catch (error) {
+    console.error('Error clearing documents: ', error);
+    showToast('❌ 清除失敗，請檢查密碼是否正確！', 'error');
+  } finally {
+    // 無論成功或失敗，都清除臨時的授權證書文件
+    try {
+      await deleteDoc(tempAuthRef);
+    } catch (cleanupError) {
+      console.error('Error cleaning up temp auth document: ', cleanupError);
+    }
+    clearAllBtn.disabled = false;
+    clearAllBtn.querySelector('span').textContent = '一鍵清除本頁訂單';
   }
 });
 
@@ -411,6 +441,14 @@ onSnapshot(q, (snapshot) => {
     paymentMap[buyer].items.push(`${drinkName} (${sizeLabelBrief} · $${price}) x${cups}`);
     paymentMap[buyer].total += subtotal;
     
+    // Check if the order belongs to the current user
+    const isOwnOrder = auth.currentUser && order.userId === auth.currentUser.uid;
+    const deleteButtonHtml = isOwnOrder ? `
+      <button class="delete-order-btn" onclick="deleteOrder('${id}', '${buyerName}')" title="刪除此訂單">
+        <i class="fa-solid fa-trash-can"></i>
+      </button>
+    ` : '';
+
     // Create list row element
     const orderRow = document.createElement('div');
     orderRow.className = 'order-row';
@@ -438,9 +476,7 @@ onSnapshot(q, (snapshot) => {
         <span style="font-size: 0.8rem; display: block; margin-top: 4px; font-weight: 700; color: var(--primary-color);">$${subtotal}</span>
       </div>
       <div class="col-action">
-        <button class="delete-order-btn" onclick="deleteOrder('${id}', '${buyerName}')" title="刪除此訂單">
-          <i class="fa-solid fa-trash-can"></i>
-        </button>
+        ${deleteButtonHtml}
       </div>
     `;
     

@@ -4,7 +4,7 @@
 
 專案名稱：drink-ordering-gh
 專案用途：飲料訂購系統
-主要工作目錄：C:\Users\chang\我的雲端硬碟\agents\antigravity\drink-ordering-gh
+主要工作目錄：C:\Users\chang\我的雲端硬碟\agents\drink-ordering-gh
 GitHub repo：https://github.com/changyiwu/drink-ordering-gh.git
 預設 branch：main
 

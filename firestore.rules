@@ -2,8 +2,49 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // 保護 config 內的文件，禁止任何前端讀取或寫入（僅供安全規則內部進行驗證比對）
+    match /config/{document} {
+      allow read, write: if false;
+    }
+
+    // 允許匿名登入的使用者寫入自己的臨時管理授權文件，且僅能讀寫自己的文件
+    match /admin_auth/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     match /orders/{document} {
-      allow read, write: if request.auth != null;
+      // 允許所有已驗證（含匿名）的使用者讀取訂單
+      allow read: if request.auth != null;
+      
+      // 新增訂單時，必須寫入當前使用者的 uid，且符合欄位格式與合理範圍限制
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.shopId is string
+        && request.resource.data.buyerName is string
+        && request.resource.data.buyerName.size() > 0
+        && request.resource.data.drinkName is string
+        && request.resource.data.drinkName.size() > 0
+        && request.resource.data.cups is int
+        && request.resource.data.cups > 0
+        && request.resource.data.cups <= 100
+        && request.resource.data.price is int
+        && request.resource.data.price >= 0;
+
+      // 只有訂單擁有者可以修改自己的訂單
+      allow update: if request.auth != null
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
+
+      // 允許訂單擁有者自行刪除；或是臨時憑證中的密碼與 config/admin 密碼相符時，允許管理員進行刪除
+      allow delete: if request.auth != null
+        && (
+          resource.data.userId == request.auth.uid
+          ||
+          (
+            exists(/databases/$(database)/documents/admin_auth/$(request.auth.uid))
+            && get(/databases/$(database)/documents/admin_auth/$(request.auth.uid)).data.password == get(/databases/$(database)/documents/config/admin).data.password
+          )
+        );
     }
   }
 }
