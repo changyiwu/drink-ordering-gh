@@ -7,5 +7,5 @@
 
 ## 目錄結構
 * `README.md` - 專案說明文件
-* `ANTIGRAVITY.md` - 專案 AI Agent 工作區規則與配置
+* `agents.md` - 跨 Agent 工作區規則與配置
 * `.gitignore` - Git 忽略設定
