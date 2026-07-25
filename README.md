@@ -43,7 +43,11 @@ App Check 會擋掉非本站來源的自動化用戶端，降低匿名登入被�
 4. 觀察 Console 的 App Check 指標，確認正常流量都帶著有效 token 後，
    再開啟 Firestore 的**強制執行（enforcement）**
 
-`APP_CHECK_SITE_KEY` 留空時會跳過初始化，本機開發不受影響。
+App Check 只在 `APP_CHECK_HOSTS` 列出的網域啟用（目前為 `changyiwu.github.io`）。
+本機以 `file://` 或 localhost 開啟時會自動跳過初始化，開發不受影響。
+
+⚠️ 換網域時要同時更新三個地方，否則正式站會拿不到 token：
+`shop.js` 的 `APP_CHECK_HOSTS`、reCAPTCHA 主控台的網域清單、Firebase Console 的 App Check 設定。
 
 ## 部署
 

@@ -104,11 +104,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // App Check：擋掉非本站來源的自動化用戶端，降低匿名登入被腳本濫用的風險。
-// 填入 reCAPTCHA v3 網站金鑰後生效；留空則跳過初始化（本機以 file:// 開啟時仍可運作）。
 // Console 設定步驟見 README 的「App Check 設定」章節。
 const APP_CHECK_SITE_KEY = '6LedLWUtAAAAAMs3XiNCFbffNp09yyO25spincPN';
 
-if (APP_CHECK_SITE_KEY) {
+// 只在正式網域啟用。本機以 file:// 或 localhost 開啟時 reCAPTCHA 換不到有效 token，
+// 跳過初始化才不會擋住開發。此處必須與 reCAPTCHA 主控台註冊的網域一致；
+// 日後若換網域（例如自訂網域），這裡與 reCAPTCHA 設定要同步更新，否則正式站會拿不到 token。
+const APP_CHECK_HOSTS = ['changyiwu.github.io'];
+
+if (APP_CHECK_SITE_KEY && APP_CHECK_HOSTS.includes(location.hostname)) {
   initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY),
     isTokenAutoRefreshEnabled: true
