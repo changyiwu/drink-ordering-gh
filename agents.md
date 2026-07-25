@@ -12,11 +12,14 @@
 
 ## 目標與路線圖
 
-- [x] 階段一：訂購前端與多店菜單（50嵐、清心、CoCo、迷客夏、鮮茶道）
+- [x] 階段一：訂購前端與多店菜單（50嵐、清心福全、CoCo、鮮茶道、Mr. Wish）
 - [x] 階段二：跨 Agent 規則入口統一為 `agents.md`
 - [x] 階段三：強化 `firestore.rules`——保護設定文件、限制管理授權文件擁有者、新增訂單時驗證姓名／杯數／價格欄位
-- [ ] 階段四：使用 Firebase CLI 部署並測試新 Firestore 規則
-- [ ] 階段五：驗證匿名使用者新增／修改／刪除自己訂單，以及管理員清除流程
+- [x] 階段四：使用 Firebase CLI 部署並測試新 Firestore 規則
+- [x] 階段五：驗證匿名使用者新增／修改／刪除自己訂單（線上實測 29 項全數通過）
+- [ ] 階段六：由使用者實測「一鍵清除」，確認 `config/admin` 的 `passwordHash` 設定正確
+- [ ] 階段七：觀察 App Check 指標，確認多數請求已驗證後開啟 Firestore 強制執行
+- [ ] 階段八（待評估）：訂單目前對任何匿名使用者全部可讀（含姓名），評估是否要限制
 
 ## 資料夾結構
 
@@ -28,6 +31,8 @@ drink-ordering-gh/
 ├─ menu_data.js        # 菜單資料
 ├─ styles.css
 ├─ firestore.rules     # Firestore 安全規則
+├─ tools/
+│  └─ set-admin-password.mjs  # 產生管理員密碼與 SHA-256 雜湊
 ├─ firebase.json  .firebaserc  .firebase/
 ├─ drink_banner.png  logo_*.png  logo_mrwish.svg
 ├─ README.md
@@ -64,3 +69,4 @@ drink-ordering-gh/
 
 - 2026-07-22：統一跨 Agent 規則入口，並強化 Firestore 訂單建立時的姓名、杯數與價格欄位驗證。
 - 2026-07-24：專案藍圖改用標準範本格式（補上路線圖 checklist、資料夾結構與同步層級表）。
+- 2026-07-26：完成安全檢查與六項修補——規則加欄位白名單與 update 驗證、管理員授權改雜湊比對、修正看板渲染的 TDZ 與 inline onclick XSS、啟用 App Check。規則已部署並線上實測 29 項通過。
