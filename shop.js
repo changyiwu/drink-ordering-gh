@@ -106,7 +106,7 @@ const app = initializeApp(firebaseConfig);
 // App Check：擋掉非本站來源的自動化用戶端，降低匿名登入被腳本濫用的風險。
 // 填入 reCAPTCHA v3 網站金鑰後生效；留空則跳過初始化（本機以 file:// 開啟時仍可運作）。
 // Console 設定步驟見 README 的「App Check 設定」章節。
-const APP_CHECK_SITE_KEY = '';
+const APP_CHECK_SITE_KEY = '6LedLWUtAAAAAMs3XiNCFbffNp09yyO25spincPN';
 
 if (APP_CHECK_SITE_KEY) {
   initializeAppCheck(app, {
