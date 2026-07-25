@@ -2,49 +2,98 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 保護 config 內的文件，禁止任何前端讀取或寫入（僅供安全規則內部進行驗證比對）
+
+    // ---------- 共用判斷 ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // SHA-256 十六進位字串（64 位小寫）
+    function isSha256Hex(value) {
+      return value is string
+        && value.size() == 64
+        && value.matches('^[0-9a-f]{64}$');
+    }
+
+    // 管理員授權：比對使用者臨時憑證與 config/admin 的密碼雜湊。
+    // 前端只會送出 SHA-256 雜湊，明文密碼不離開瀏覽器；config 前端完全不可讀寫，
+    // 只有安全規則內部的 get() 能取用（get() 不受 read 規則限制）。
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/admin_auth/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admin_auth/$(request.auth.uid)).data.passwordHash
+           == get(/databases/$(database)/documents/config/admin).data.passwordHash;
+    }
+
+    // 訂單欄位白名單：只允許這 11 個欄位，且全部必填。
+    // hasOnly 擋掉夾帶額外欄位灌爆文件（單份上限 1MB）的手法。
+    function hasExactOrderFields(data) {
+      return data.keys().hasOnly([
+        'userId', 'shopId', 'shopName', 'buyerName', 'drinkName',
+        'size', 'price', 'cups', 'sweetness', 'ice', 'createdAt'
+      ]) && data.keys().hasAll([
+        'userId', 'shopId', 'shopName', 'buyerName', 'drinkName',
+        'size', 'price', 'cups', 'sweetness', 'ice', 'createdAt'
+      ]);
+    }
+
+    // create 與 update 共用的欄位驗證（注意 size 欄位須用 data['size']，
+    // 直接寫 data.size 會與 Map 的 size() 方法混淆）
+    function isValidOrder(data) {
+      return hasExactOrderFields(data)
+        && data.userId is string
+        && data.shopId is string && data.shopId.size() > 0 && data.shopId.size() <= 32
+        && data.shopName is string && data.shopName.size() > 0 && data.shopName.size() <= 40
+        && data.buyerName is string && data.buyerName.size() > 0 && data.buyerName.size() <= 40
+        && data.drinkName is string && data.drinkName.size() > 0 && data.drinkName.size() <= 60
+        && data['size'] is string && data['size'] in ['M', 'L']
+        && data.price is int && data.price >= 0 && data.price <= 500
+        && data.cups is int && data.cups > 0 && data.cups <= 100
+        && data.sweetness is string && data.sweetness.size() > 0 && data.sweetness.size() <= 20
+        && data.ice is string && data.ice.size() > 0 && data.ice.size() <= 20
+        && data.createdAt is timestamp;
+    }
+
+    // ---------- 集合規則 ----------
+
+    // 設定文件：僅供安全規則內部比對，前端完全不可讀寫
     match /config/{document} {
       allow read, write: if false;
     }
 
-    // 允許匿名登入的使用者寫入自己的臨時管理授權文件，且僅能讀寫自己的文件
+    // 管理員臨時憑證：只能操作自己的文件，且只能放 SHA-256 雜湊
     match /admin_auth/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow get: if isSignedIn() && request.auth.uid == uid;
+      allow list: if false;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['passwordHash'])
+        && isSha256Hex(request.resource.data.passwordHash);
+
+      allow delete: if isSignedIn() && request.auth.uid == uid;
     }
 
-    match /orders/{document} {
-      // 允許所有已驗證（含匿名）的使用者讀取訂單
-      allow read: if request.auth != null;
+    match /orders/{orderId} {
+      // 注意：任何匿名登入者都能讀取全部訂單（共享看板的既有設計）。
+      // 若日後不希望姓名對外公開，需改為依 shopId 或邀請碼限制。
+      allow read: if isSignedIn();
 
-      // 新增訂單時，必須寫入當前使用者的 uid，且符合欄位格式與合理範圍限制
-      allow create: if request.auth != null
+      allow create: if isSignedIn()
+        && isValidOrder(request.resource.data)
         && request.resource.data.userId == request.auth.uid
-        && request.resource.data.shopId is string
-        && request.resource.data.buyerName is string
-        && request.resource.data.buyerName.size() > 0
-        && request.resource.data.drinkName is string
-        && request.resource.data.drinkName.size() > 0
-        && request.resource.data.cups is int
-        && request.resource.data.cups > 0
-        && request.resource.data.cups <= 100
-        && request.resource.data.price is int
-        && request.resource.data.price >= 0;
+        && request.resource.data.createdAt == request.time;
 
-      // 只有訂單擁有者可以修改自己的訂單
-      allow update: if request.auth != null
+      // update 與 create 套用同一組欄位驗證，並鎖住 userId 與 createdAt，
+      // 避免下單後再改成不合理的杯數／金額或冒用他人姓名
+      allow update: if isSignedIn()
+        && isValidOrder(request.resource.data)
         && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == request.auth.uid;
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.createdAt == resource.data.createdAt;
 
-      // 允許訂單擁有者自行刪除；或是臨時憑證中的密碼與 config/admin 密碼相符時，允許管理員進行刪除
-      allow delete: if request.auth != null
-        && (
-          resource.data.userId == request.auth.uid
-          ||
-          (
-            exists(/databases/$(database)/documents/admin_auth/$(request.auth.uid))
-            && get(/databases/$(database)/documents/admin_auth/$(request.auth.uid)).data.password == get(/databases/$(database)/documents/config/admin).data.password
-          )
-        );
+      allow delete: if isSignedIn()
+        && (resource.data.userId == request.auth.uid || isAdmin());
     }
   }
 }

@@ -15,6 +15,7 @@ import {
   setDoc
 } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js';
 
 import { SHOPS_DATA } from './menu_data.js';
 
@@ -101,6 +102,19 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// App Check：擋掉非本站來源的自動化用戶端，降低匿名登入被腳本濫用的風險。
+// 填入 reCAPTCHA v3 網站金鑰後生效；留空則跳過初始化（本機以 file:// 開啟時仍可運作）。
+// Console 設定步驟見 README 的「App Check 設定」章節。
+const APP_CHECK_SITE_KEY = '';
+
+if (APP_CHECK_SITE_KEY) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY),
+    isTokenAutoRefreshEnabled: true
+  });
+}
+
 const db = getFirestore(app);
 const auth = getAuth(app);
 const ordersCollection = collection(db, 'orders');
@@ -272,7 +286,7 @@ orderForm.addEventListener('submit', async (e) => {
 });
 
 // Delete Order logic
-window.deleteOrder = async (id, buyerName) => {
+async function deleteOrder(id, buyerName) {
   if (confirm(`確定要刪除 ${buyerName} 的訂單嗎？`)) {
     try {
       await deleteDoc(doc(db, 'orders', id));
@@ -282,7 +296,7 @@ window.deleteOrder = async (id, buyerName) => {
       showToast('❌ 刪除失敗，請再試一次', 'error');
     }
   }
-};
+}
 
 // Clear All Shop Orders logic
 clearAllBtn.addEventListener('click', async () => {
@@ -305,9 +319,9 @@ clearAllBtn.addEventListener('click', async () => {
   const tempAuthRef = doc(db, 'admin_auth', auth.currentUser.uid);
   
   try {
-    // 寫入使用者輸入的密碼至臨時授權文件
-    await setDoc(tempAuthRef, { password: password });
-    
+    // 只寫入 SHA-256 雜湊，明文密碼不離開瀏覽器，資料庫內也不留明文
+    await setDoc(tempAuthRef, { passwordHash: await sha256Hex(password.trim()) });
+
     // 獲取該店家的所有訂單
     const q = query(ordersCollection, where('shopId', '==', shopId));
     const querySnapshot = await getDocs(q);
@@ -441,10 +455,20 @@ onSnapshot(q, (snapshot) => {
     paymentMap[buyer].items.push(`${drinkName} (${sizeLabelBrief} · $${price}) x${cups}`);
     paymentMap[buyer].total += subtotal;
     
+    // Safe output escaping
+    const buyerName = escapeHtml(buyer);
+    const displayDrink = escapeHtml(drinkName);
+    const displaySweetness = escapeHtml(sweetness);
+    const displayIce = escapeHtml(ice);
+    const sizeLabel = size === 'L' ? '大杯' : '中杯';
+
     // Check if the order belongs to the current user
     const isOwnOrder = auth.currentUser && order.userId === auth.currentUser.uid;
+
+    // 不使用 inline onclick：屬性值會先經過 HTML 實體解碼，escapeHtml 產生的 &#39;
+    // 會還原成單引號而逃脫 JS 字串，改用 addEventListener 從根本避免
     const deleteButtonHtml = isOwnOrder ? `
-      <button class="delete-order-btn" onclick="deleteOrder('${id}', '${buyerName}')" title="刪除此訂單">
+      <button class="delete-order-btn" type="button" title="刪除此訂單">
         <i class="fa-solid fa-trash-can"></i>
       </button>
     ` : '';
@@ -452,14 +476,7 @@ onSnapshot(q, (snapshot) => {
     // Create list row element
     const orderRow = document.createElement('div');
     orderRow.className = 'order-row';
-    
-    // Safe output escaping
-    const buyerName = escapeHtml(buyer);
-    const displayDrink = escapeHtml(drinkName);
-    const displaySweetness = escapeHtml(sweetness);
-    const displayIce = escapeHtml(ice);
-    const sizeLabel = size === 'L' ? '大杯' : '中杯';
-    
+
     orderRow.innerHTML = `
       <div class="col-name">${buyerName}</div>
       <div class="col-drink">
@@ -479,7 +496,13 @@ onSnapshot(q, (snapshot) => {
         ${deleteButtonHtml}
       </div>
     `;
-    
+
+    if (isOwnOrder) {
+      orderRow
+        .querySelector('.delete-order-btn')
+        .addEventListener('click', () => deleteOrder(id, buyer));
+    }
+
     ordersList.appendChild(orderRow);
   });
   
@@ -527,6 +550,17 @@ onSnapshot(q, (snapshot) => {
   console.error("Firestore listen error: ", error);
   showToast("❌ 資料庫同步失敗！請重新載入網頁", "error");
 });
+
+// 以 SHA-256 計算十六進位雜湊；crypto.subtle 只在安全環境（HTTPS 或 localhost）可用
+async function sha256Hex(text) {
+  if (!globalThis.crypto || !globalThis.crypto.subtle) {
+    throw new Error('目前不是安全連線環境（需要 HTTPS），無法計算密碼雜湊');
+  }
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 // Escape HTML utility function for security
 function escapeHtml(str) {
