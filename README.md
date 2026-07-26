@@ -44,10 +44,31 @@ App Check 會擋掉非本站來源的自動化用戶端，降低匿名登入被�
    再開啟 Firestore 的**強制執行（enforcement）**
 
 App Check 只在 `APP_CHECK_HOSTS` 列出的網域啟用（目前為 `changyiwu.github.io`）。
-本機以 `file://` 或 localhost 開啟時會自動跳過初始化，開發不受影響。
+本機開發不受影響——見下節，localhost 根本不會初始化 Firebase。
 
 ⚠️ 換網域時要同時更新三個地方，否則正式站會拿不到 token：
 `shop.js` 的 `APP_CHECK_HOSTS`、reCAPTCHA 主控台的網域清單、Firebase Console 的 App Check 設定。
+
+## 本機開發：離線示範模式（localhost 自動啟用）
+
+在 `localhost`、`127.0.0.1` 或 `file://` 開啟時，`shop.js` 會**完全跳過 Firebase 初始化**，
+改用一份只存在記憶體裡的假訂單，頁面頂端會出現黃色虛線橫幅提示。
+
+```bash
+python -m http.server 4173
+```
+
+然後開 `http://localhost:4173/shop.html?shop=50lan`。
+
+- 判斷依據為 `shop.js` 的 `DEMO_HOSTS`，正式網域不在清單內，**線上行為完全不受影響**
+- 示範模式下 `db`／`auth`／`ordersCollection` 一律維持 `null`，所以本機**沒有任何一條路徑碰得到正式訂單資料**
+- 假資料的飲料與價格取自該店的真實菜單，五家店都能看到合理金額
+- 種子資料混有「自己的」與「別人的」訂單，可驗證只有自己的訂單才出現刪除鈕
+- 「一鍵清除」的管理員密碼固定為 `demo`（方便同時測成功與失敗兩條路徑），走的**不是**真實的雜湊比對
+- 資料只存在當前分頁，重新整理就還原
+
+⚠️ 示範模式**測不到 Firestore 安全規則**。欄位白名單、`update` 驗證、管理員雜湊授權都在規則層，
+仍舊只能在正式網域的瀏覽器環境驗證（本機沒有 Java，Firestore 模擬器跑不起來）。
 
 ## 分享店家連結
 

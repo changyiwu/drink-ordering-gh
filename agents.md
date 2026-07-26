@@ -22,6 +22,7 @@
 - [ ] 階段八：由使用者實測「一鍵清除」，確認 `config/admin` 的 `passwordHash` 設定正確
 - [ ] 階段九：觀察 App Check 指標，確認多數請求已驗證後開啟 Firestore 強制執行
 - [ ] 階段十（待評估）：訂單目前對任何匿名使用者全部可讀（含姓名），評估是否要限制
+- [x] 階段十一：本機開發環境——看板渲染收斂為單一 `renderBoard()`，並新增 localhost 離線示範模式
 
 ## 資料夾結構
 
@@ -75,3 +76,4 @@ drink-ordering-gh/
 - 2026-07-24：專案藍圖改用標準範本格式（補上路線圖 checklist、資料夾結構與同步層級表）。
 - 2026-07-26：完成安全檢查與六項修補——規則加欄位白名單與 update 驗證、管理員授權改雜湊比對、修正看板渲染的 TDZ 與 inline onclick XSS、啟用 App Check。規則已部署並線上實測 29 項通過。
 - 2026-07-26：視覺與效能改善——修正標題對比（1.02 → 12.8）、套用品牌 logo、banner 633KB → 79KB、選單依分類分組、新增分享入口頁；圖片素材集中至 `images/`。
+- 2026-07-26：建立本機開發環境——`onSnapshot` 的 190 行 callback 抽成 `renderBoard(orders)`，Firebase 初始化包成 `initFirebase()` 改為條件執行，localhost 自動啟用離線示範模式（假資料、不連 Firebase）。

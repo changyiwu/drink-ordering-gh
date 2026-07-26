@@ -114,9 +114,6 @@ const firebaseConfig = {
   version: "2"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
 // App Check：擋掉非本站來源的自動化用戶端，降低匿名登入被腳本濫用的風險。
 // Console 設定步驟見 README 的「App Check 設定」章節。
 const APP_CHECK_SITE_KEY = '6LedLWUtAAAAAMs3XiNCFbffNp09yyO25spincPN';
@@ -126,26 +123,72 @@ const APP_CHECK_SITE_KEY = '6LedLWUtAAAAAMs3XiNCFbffNp09yyO25spincPN';
 // 日後若換網域（例如自訂網域），這裡與 reCAPTCHA 設定要同步更新，否則正式站會拿不到 token。
 const APP_CHECK_HOSTS = ['changyiwu.github.io'];
 
-if (APP_CHECK_SITE_KEY && APP_CHECK_HOSTS.includes(location.hostname)) {
-  initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY),
-    isTokenAutoRefreshEnabled: true
+// 本機開發時 API key 的 referrer 限制會擋掉 localhost，Firebase 連不上；而且就算
+// 連得上，讀寫到的也是同事正在用的正式訂單。所以本機一律改跑純前端的離線示範模式，
+// UI 調整不必每次推上線才看得到，也不會誤動真實資料。
+// 正式網域不在這份清單裡，線上行為完全不受影響。
+const DEMO_HOSTS = ['localhost', '127.0.0.1', ''];
+const DEMO_MODE = DEMO_HOSTS.includes(location.hostname);
+const DEMO_UID = 'demo-me';
+const DEMO_OTHER_UID = 'demo-other';
+const DEMO_ADMIN_PASSWORD = 'demo';
+
+// 這三個只在正式模式下建立；示範模式一律維持 null，
+// 從根本保證本機沒有任何一條路徑碰得到正式 Firestore。
+let db = null;
+let auth = null;
+let ordersCollection = null;
+
+// 目前使用者的 UID。看板渲染只讀這個變數、不直接碰 auth，
+// 資料來源換掉時（例如改餵假資料）渲染路徑就不必跟著改。
+let myUid = null;
+
+function initFirebase() {
+  const app = initializeApp(firebaseConfig);
+
+  if (APP_CHECK_SITE_KEY && APP_CHECK_HOSTS.includes(location.hostname)) {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(APP_CHECK_SITE_KEY),
+      isTokenAutoRefreshEnabled: true
+    });
+  }
+
+  db = getFirestore(app);
+  auth = getAuth(app);
+  ordersCollection = collection(db, 'orders');
+
+  // Sign in anonymously
+  signInAnonymously(auth)
+    .then((userCredential) => {
+      myUid = userCredential.user.uid;
+      console.log('Firebase Anonymous Auth Success. UID:', myUid);
+    })
+    .catch((error) => {
+      console.error('Firebase Auth failed:', error);
+      showToast('❌ 驗證失敗，無法連接資料庫！', 'error');
+    });
+
+  // Listen for Real-time orders updates from Firestore for this specific shop.
+  // 這裡只負責把 snapshot 攤平成物件陣列，渲染一律交給 renderBoard。
+  const q = query(ordersCollection, where('shopId', '==', shopId));
+
+  onSnapshot(q, (snapshot) => {
+    const orders = [];
+    snapshot.forEach((doc) => {
+      orders.push({ id: doc.id, ...doc.data() });
+    });
+    renderBoard(orders);
+  }, (error) => {
+    console.error("Firestore listen error: ", error);
+    showToast("❌ 資料庫同步失敗！請重新載入網頁", "error");
   });
 }
 
-const db = getFirestore(app);
-const auth = getAuth(app);
-const ordersCollection = collection(db, 'orders');
-
-// Sign in anonymously
-signInAnonymously(auth)
-  .then((userCredential) => {
-    console.log('Firebase Anonymous Auth Success. UID:', userCredential.user.uid);
-  })
-  .catch((error) => {
-    console.error('Firebase Auth failed:', error);
-    showToast('❌ 驗證失敗，無法連接資料庫！', 'error');
-  });
+// 送單與清除的共同前置檢查：示範模式永遠就緒，正式模式要等匿名登入拿到 UID。
+// 比對 myUid 而非只看 auth.currentUser，可避免在 UID 還沒設好時送出 userId 為空的訂單。
+function isReady() {
+  return DEMO_MODE || !!(db && auth && auth.currentUser && myUid);
+}
 
 // DOM Elements
 const orderForm = document.getElementById('order-form');
@@ -163,6 +206,7 @@ const statPeople = document.getElementById('stat-people');
 const statCups = document.getElementById('stat-cups');
 const toast = document.getElementById('toast');
 const summaryTableBody = document.getElementById('summary-table-body');
+const paymentTableBody = document.getElementById('payment-table-body');
 const clearAllBtn = document.getElementById('clear-all-btn');
 
 // Custom Cup Count Stepper Logic
@@ -207,8 +251,8 @@ function showToast(message, type = 'success') {
 // Form Validation and submission
 orderForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
-  if (!auth.currentUser) {
+
+  if (!isReady()) {
     showToast('❌ 尚未完成身份驗證，請稍後再試！', 'error');
     return;
   }
@@ -270,9 +314,9 @@ orderForm.addEventListener('submit', async (e) => {
     const selectedSizeOption = cupSizeSelect.options[cupSizeSelect.selectedIndex];
     const price = parseInt(selectedSizeOption.getAttribute('data-price')) || 0;
 
-    // Add document to Firestore (including shopId, shopName, price, size, userId)
-    await addDoc(ordersCollection, {
-      userId: auth.currentUser.uid,
+    // Order payload (including shopId, shopName, price, size, userId)
+    const orderData = {
+      userId: myUid,
       shopId: shopId,
       shopName: shopInfo.name,
       buyerName: buyerNameInput.value.trim(),
@@ -281,9 +325,15 @@ orderForm.addEventListener('submit', async (e) => {
       price: price,
       cups: cups,
       sweetness: sweetnessSelect.value,
-      ice: iceLevelSelect.value,
-      createdAt: serverTimestamp()
-    });
+      ice: iceLevelSelect.value
+    };
+
+    if (DEMO_MODE) {
+      // createdAt 由示範資料存放區補上；正式模式交給伺服器時間戳
+      demoAddOrder(orderData);
+    } else {
+      await addDoc(ordersCollection, { ...orderData, createdAt: serverTimestamp() });
+    }
 
     showToast('🎉 訂單已成功送出！');
 
@@ -315,7 +365,11 @@ orderForm.addEventListener('submit', async (e) => {
 async function deleteOrder(id, buyerName) {
   if (confirm(`確定要刪除 ${buyerName} 的訂單嗎？`)) {
     try {
-      await deleteDoc(doc(db, 'orders', id));
+      if (DEMO_MODE) {
+        demoDeleteOrder(id);
+      } else {
+        await deleteDoc(doc(db, 'orders', id));
+      }
       showToast('🗑️ 訂單已成功刪除');
     } catch (error) {
       console.error('Error deleting document: ', error);
@@ -326,7 +380,7 @@ async function deleteOrder(id, buyerName) {
 
 // Clear All Shop Orders logic
 clearAllBtn.addEventListener('click', async () => {
-  if (!auth.currentUser) {
+  if (!isReady()) {
     showToast('❌ 尚未完成身份驗證，請稍後再試！', 'error');
     return;
   }
@@ -342,59 +396,66 @@ clearAllBtn.addEventListener('click', async () => {
   clearAllBtn.disabled = true;
   clearAllBtn.querySelector('span').textContent = '清除中...';
   
-  const tempAuthRef = doc(db, 'admin_auth', auth.currentUser.uid);
-  
-  try {
-    // 只寫入 SHA-256 雜湊，明文密碼不離開瀏覽器，資料庫內也不留明文
-    await setDoc(tempAuthRef, { passwordHash: await sha256Hex(password.trim()) });
+  // 示範模式不碰 admin_auth，也不需要雜湊比對
+  const tempAuthRef = DEMO_MODE ? null : doc(db, 'admin_auth', auth.currentUser.uid);
 
-    // 獲取該店家的所有訂單
-    const q = query(ordersCollection, where('shopId', '==', shopId));
-    const querySnapshot = await getDocs(q);
-    
-    if (querySnapshot.empty) {
-      showToast('目前沒有可清除的訂單', 'error');
-      await deleteDoc(tempAuthRef);
-      return;
+  try {
+    if (DEMO_MODE) {
+      const deleted = demoClearAll(password.trim());
+      if (deleted === 0) {
+        showToast('目前沒有可清除的訂單', 'error');
+      } else {
+        showToast(`🗑️ 已成功清除所有《${shopInfo.name}》的訂單！`);
+      }
+    } else {
+      // 只寫入 SHA-256 雜湊，明文密碼不離開瀏覽器，資料庫內也不留明文
+      await setDoc(tempAuthRef, { passwordHash: await sha256Hex(password.trim()) });
+
+      // 獲取該店家的所有訂單
+      const q = query(ordersCollection, where('shopId', '==', shopId));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        showToast('目前沒有可清除的訂單', 'error');
+        await deleteDoc(tempAuthRef);
+        return;
+      }
+
+      const batch = writeBatch(db);
+      querySnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      // 執行批次刪除（此時 Firestore 安全規則會至 admin_auth 與 config/admin 比對密碼）
+      await batch.commit();
+      showToast(`🗑️ 已成功清除所有《${shopInfo.name}》的訂單！`);
     }
-    
-    const batch = writeBatch(db);
-    querySnapshot.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-    
-    // 執行批次刪除（此時 Firestore 安全規則會至 admin_auth 與 config/admin 比對密碼）
-    await batch.commit();
-    showToast(`🗑️ 已成功清除所有《${shopInfo.name}》的訂單！`);
   } catch (error) {
     console.error('Error clearing documents: ', error);
     showToast('❌ 清除失敗，請檢查密碼是否正確！', 'error');
   } finally {
     // 無論成功或失敗，都清除臨時的授權證書文件
-    try {
-      await deleteDoc(tempAuthRef);
-    } catch (cleanupError) {
-      console.error('Error cleaning up temp auth document: ', cleanupError);
+    if (tempAuthRef) {
+      try {
+        await deleteDoc(tempAuthRef);
+      } catch (cleanupError) {
+        console.error('Error cleaning up temp auth document: ', cleanupError);
+      }
     }
     clearAllBtn.disabled = false;
     clearAllBtn.querySelector('span').textContent = '一鍵清除本頁訂單';
   }
 });
 
-// Listen for Real-time orders updates from Firestore for this specific shop
-const q = query(
-  ordersCollection, 
-  where('shopId', '==', shopId)
-);
-
-onSnapshot(q, (snapshot) => {
+// 看板渲染的唯一入口。參數是單純的訂單物件陣列（`{ id, ...欄位 }`），不依賴
+// Firestore 的 snapshot 型別，因此任何來源的資料都能直接餵進來。
+function renderBoard(orders) {
   // Clear loading state or current list
   ordersList.innerHTML = '';
   summaryTableBody.innerHTML = '';
-  const paymentTableBody = document.getElementById('payment-table-body');
   paymentTableBody.innerHTML = '';
-  
-  if (snapshot.empty) {
+
+  if (orders.length === 0) {
     emptyState.classList.remove('hidden');
     statPeople.textContent = '0';
     statCups.textContent = '0';
@@ -423,12 +484,7 @@ onSnapshot(q, (snapshot) => {
   const summaryMap = {};
   const paymentMap = {};
   
-  // Extract and sort documents client-side to avoid requiring a composite index
-  const orders = [];
-  snapshot.forEach((doc) => {
-    orders.push({ id: doc.id, ...doc.data() });
-  });
-  
+  // Sort client-side to avoid requiring a composite index
   orders.sort((a, b) => {
     const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
     const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
@@ -489,7 +545,7 @@ onSnapshot(q, (snapshot) => {
     const sizeLabel = size === 'L' ? '大杯' : '中杯';
 
     // Check if the order belongs to the current user
-    const isOwnOrder = auth.currentUser && order.userId === auth.currentUser.uid;
+    const isOwnOrder = myUid && order.userId === myUid;
 
     // 不使用 inline onclick：屬性值會先經過 HTML 實體解碼，escapeHtml 產生的 &#39;
     // 會還原成單引號而逃脫 JS 字串，改用 addEventListener 從根本避免
@@ -572,10 +628,109 @@ onSnapshot(q, (snapshot) => {
   // Update dashboard stats
   statPeople.textContent = uniqueNames.size;
   statCups.textContent = totalCups;
-}, (error) => {
-  console.error("Firestore listen error: ", error);
-  showToast("❌ 資料庫同步失敗！請重新載入網頁", "error");
-});
+}
+
+// ---------------------------------------------------------------------------
+// 離線示範模式的資料存放區（只在本機啟用）
+// ---------------------------------------------------------------------------
+
+// id -> 訂單物件，欄位形狀與 Firestore 的 orders 文件一致，
+// 這樣 renderBoard 收到假資料與真資料時完全分不出差別。
+const demoOrders = new Map();
+let demoIdSeq = 0;
+
+function demoNextId() {
+  demoIdSeq += 1;
+  return `demo-${demoIdSeq}`;
+}
+
+// 從這家店的真實菜單取尺寸與價格，五家店的假資料才會是合理金額
+function demoSizeAndPrice(item) {
+  if (item.prices) {
+    const sizes = Object.keys(item.prices);
+    const size = sizes.includes('L') ? 'L' : sizes[0];
+    return { size, price: item.prices[size] };
+  }
+  return { size: 'L', price: item.price || 0 };
+}
+
+function initDemoMode() {
+  myUid = DEMO_UID;
+
+  // 種子資料刻意混入別人的訂單與自己的訂單，
+  // 「只有自己的訂單才有刪除鈕」這條邏輯才測得到
+  const seed = [
+    { buyerName: '小美', cups: 2, userId: DEMO_OTHER_UID, sweetness: '五分糖', ice: '微冰' },
+    { buyerName: '阿哲', cups: 1, userId: DEMO_OTHER_UID, sweetness: '無糖', ice: '去冰' },
+    { buyerName: '我自己', cups: 1, userId: DEMO_UID, sweetness: '全糖', ice: '正常冰' },
+    { buyerName: '王大同', cups: 3, userId: DEMO_OTHER_UID, sweetness: '三分糖', ice: '熱飲' }
+  ];
+
+  // 固定基準時間往前遞減，排序結果才穩定（新的在上）
+  const baseTime = Date.now();
+
+  seed.forEach((entry, index) => {
+    const item = shopInfo.menu[index % shopInfo.menu.length];
+    if (!item) return;
+    const { size, price } = demoSizeAndPrice(item);
+    const id = demoNextId();
+    demoOrders.set(id, {
+      id,
+      userId: entry.userId,
+      shopId: shopId,
+      shopName: shopInfo.name,
+      buyerName: entry.buyerName,
+      drinkName: item.name,
+      size,
+      price,
+      cups: entry.cups,
+      sweetness: entry.sweetness,
+      ice: entry.ice,
+      createdAt: new Date(baseTime - index * 60000)
+    });
+  });
+
+  document.getElementById('demo-banner').classList.remove('hidden');
+  demoEmit();
+
+  console.info(
+    `離線示範模式已啟用（${location.hostname || 'file://'}）。` +
+    `管理員密碼為「${DEMO_ADMIN_PASSWORD}」，所有資料只存在這個分頁裡，重新整理就會還原。`
+  );
+}
+
+function demoEmit() {
+  renderBoard(Array.from(demoOrders.values()));
+}
+
+function demoAddOrder(orderData) {
+  const id = demoNextId();
+  demoOrders.set(id, { ...orderData, id, createdAt: new Date() });
+  demoEmit();
+}
+
+function demoDeleteOrder(id) {
+  demoOrders.delete(id);
+  demoEmit();
+}
+
+function demoClearAll(password) {
+  // 刻意模仿 Firestore 規則拒絕時的錯誤形狀，密碼錯誤那條路徑在本機也才測得到
+  if (password !== DEMO_ADMIN_PASSWORD) {
+    const error = new Error('密碼錯誤');
+    error.code = 'permission-denied';
+    throw error;
+  }
+  let deleted = 0;
+  demoOrders.forEach((order, id) => {
+    if (order.shopId === shopId) {
+      demoOrders.delete(id);
+      deleted += 1;
+    }
+  });
+  demoEmit();
+  return deleted;
+}
 
 // 以 SHA-256 計算十六進位雜湊；crypto.subtle 只在安全環境（HTTPS 或 localhost）可用
 async function sha256Hex(text) {
@@ -590,7 +745,7 @@ async function sha256Hex(text) {
 
 // Escape HTML utility function for security
 function escapeHtml(str) {
-  return str.replace(/[&<>'"]/g, 
+  return str.replace(/[&<>'"]/g,
     tag => ({
       '&': '&amp;',
       '<': '&lt;',
@@ -599,4 +754,14 @@ function escapeHtml(str) {
       '"': '&quot;'
     }[tag] || tag)
   );
+}
+
+// ---------------------------------------------------------------------------
+// 啟動：兩條路互斥，示範模式下 initFirebase 完全不會被呼叫。
+// 放在檔案最末尾，確保上面所有 const（demoOrders 等）都已初始化，不會踩到 TDZ。
+// ---------------------------------------------------------------------------
+if (DEMO_MODE) {
+  initDemoMode();
+} else {
+  initFirebase();
 }

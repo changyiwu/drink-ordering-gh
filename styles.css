@@ -750,6 +750,36 @@ select:focus + .select-arrow {
   display: none !important;
 }
 
+/* 離線示範模式橫幅：只在本機出現，刻意用虛線邊框與站內配色區隔，
+   避免被誤認為正式站的一般提示 */
+.demo-banner {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-bottom: 16px;
+  padding: 12px 18px;
+  border: 2px dashed #B45309;
+  border-radius: var(--radius-sm);
+  background: #FEF3C7;
+  color: #7C2D12; /* 對比 #FEF3C7 約 9.6:1 */
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.demo-banner strong {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.demo-banner code {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(180, 83, 9, 0.18);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+}
+
 /* Responsive Table Layout for In-App Mobile Browsers */
 @media (max-width: 650px) {
   .orders-table-header {
