@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作伙喝飲料！- Mr. Wish 即時訂購</title>
+
+  <!-- 此頁僅為分享用的轉址頁：純靜態站無法在 shop.html 依 shop 參數動態產生 OG 標籤，
+       爬蟲也不會執行 JS，因此為每家店各備一份帶專屬 OG 標籤的入口。 -->
+  <meta name="description" content="新鮮果茶，光果茶與楊枝甘露。和朋友同事一起訂 Mr. Wish，即時看板讓所有人看到目前訂購情形。">
+  <meta property="og:title" content="作伙喝飲料！- Mr. Wish 即時訂購">
+  <meta property="og:description" content="新鮮果茶，光果茶與楊枝甘露。和朋友同事一起訂 Mr. Wish，即時看板讓所有人看到目前訂購情形。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://changyiwu.github.io/drink-ordering-gh/mrwish.html">
+  <meta property="og:image" content="https://changyiwu.github.io/drink-ordering-gh/drink_banner_og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <link rel="canonical" href="https://changyiwu.github.io/drink-ordering-gh/shop.html?shop=mrwish">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#D84315">
+
+  <!-- 無 JS 時的備援轉址 -->
+  <meta http-equiv="refresh" content="0; url=shop.html?shop=mrwish">
+
+  <script>
+    // 用 replace 而非 assign，避免在瀏覽紀錄留下多餘的一頁（按上一頁會卡住）
+    location.replace('shop.html?shop=mrwish');
+  </script>
+
+  <style>
+    body { font-family: 'Noto Sans TC', system-ui, sans-serif; background: #FAF6F0; color: #3E2723;
+           display: flex; align-items: center; justify-content: center; min-height: 100dvh; margin: 0; }
+    a { color: #BF360C; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <p>正在前往 Mr. Wish 訂購頁… 若沒有自動跳轉，請<a href="shop.html?shop=mrwish">點此進入</a>。</p>
+</body>
+</html>

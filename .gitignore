@@ -39,6 +39,9 @@ out/
 .gemini/
 scratch/
 
+# Claude Code 本機設定
+.claude/
+
 # Firebase temporary files
 .firebase/
 

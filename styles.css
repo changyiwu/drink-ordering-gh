@@ -125,6 +125,13 @@ body {
   box-shadow: var(--shadow-md);
 }
 
+/* <picture> 預設是 inline，必須撐滿 wrapper 才能讓內部 img 的 object-fit 生效 */
+.banner-wrapper picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .header-banner {
   width: 100%;
   height: 100%;
@@ -168,20 +175,20 @@ body {
   margin-bottom: 12px;
 }
 
+/* 標題與副標題落在 banner 下方的頁面底色上（只有 logo 徽章跨越 banner 邊緣），
+   因此使用深色文字。先前為白／米白配 text-shadow，對比僅 1.02 幾乎不可讀。 */
 .app-header h1 {
   font-family: var(--font-display);
   font-size: 2.2rem;
   font-weight: 800;
-  color: #FFFFFF;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  color: var(--text-main); /* 對比 12.8:1 */
   margin-bottom: 4px;
 }
 
 .app-header .subtitle {
   font-size: 1rem;
-  color: #FFF3E0; /* Brighter cream for better contrast */
-  font-weight: 600; /* Slightly bolder */
-  text-shadow: 0 2px 6px rgba(0,0,0,0.45);
+  color: var(--text-muted); /* 對比 8.65:1 */
+  font-weight: 600;
 }
 
 /* Responsive Main Grid */
@@ -314,6 +321,8 @@ select:focus {
 .stepper-btn {
   background: none;
   border: none;
+  /* flex: 0 0 44px 而非 width，否則會被 flex-shrink 壓到 25–35px，低於觸控目標建議值 */
+  flex: 0 0 44px;
   width: 44px;
   height: 44px;
   cursor: pointer;
@@ -629,7 +638,7 @@ select:focus + .select-arrow {
 
 .badge-sweetness {
   background-color: #FFF3E0;
-  color: #D84315; /* Darker amber-orange */
+  color: #9C3412; /* 加深以達 WCAG AA：原 #D84315 對比僅 4.05，現為 6.1 */
   border: 1px solid #FFCC80;
 }
 
@@ -640,7 +649,10 @@ select:focus + .select-arrow {
 }
 
 .badge-cups {
-  background-color: var(--primary-glow);
+  /* 原本用 --primary-glow（20% 透明）當底，混色後對比僅約 3.8。
+     改為白底＋主題色邊框，五個主題的 --primary-dark 對比皆達 5.7 以上。 */
+  background-color: #FFFFFF;
+  border: 1px solid var(--primary-light);
   color: var(--primary-dark);
   font-weight: 800;
   padding: 4px 8px;
@@ -1170,4 +1182,26 @@ body.theme-mrwish {
   color: #FFFFFF;
 }
 
+/* ── 店家卡片品牌 logo ──────────────────────────────────────────
+   卡片改用真實品牌 logo（橫式，比例 1.8:1 ~ 4.2:1），取代原本的
+   FontAwesome 通用圖示。白底讓各品牌配色都能正確呈現，因此需覆蓋
+   各 .theme-* 為 .shop-logo 設定的底色。本區塊必須放在主題定義之後，
+   兩者特異度相同（0,2,0），靠出現順序決勝。 */
+.shop-card .shop-logo {
+  width: auto;
+  min-width: 44px;
+  max-width: 132px;
+  height: 44px;
+  padding: 5px 10px;
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
 
+.shop-card .shop-logo img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}

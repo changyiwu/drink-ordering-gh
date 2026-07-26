@@ -49,6 +49,33 @@ App Check 只在 `APP_CHECK_HOSTS` 列出的網域啟用（目前為 `changyiwu.
 ⚠️ 換網域時要同時更新三個地方，否則正式站會拿不到 token：
 `shop.js` 的 `APP_CHECK_HOSTS`、reCAPTCHA 主控台的網域清單、Firebase Console 的 App Check 設定。
 
+## 分享店家連結
+
+分享到 LINE／FB 時，**請用各店的分享入口頁**，預覽才會顯示正確的店名：
+
+| 店家 | 分享網址 |
+|---|---|
+| 50嵐 | `https://changyiwu.github.io/drink-ordering-gh/50lan.html` |
+| 清心福全 | `.../chingshin.html` |
+| CoCo 都可 | `.../coco.html` |
+| 鮮茶道 | `.../presotea.html` |
+| Mr. Wish | `.../mrwish.html` |
+
+這些頁面只帶專屬 OG 標籤，開啟後會立即轉址到對應的 `shop.html?shop=<id>`。
+直接分享 `shop.html?shop=50lan` 的話，預覽會顯示通用標題——因為純靜態站無法依
+query 參數產生 OG 標籤，爬蟲也不會執行 JS。
+
+首頁的店家卡片仍直接連到 `shop.html`，避免日常使用多一次轉址。
+
+## 圖片素材
+
+- `drink_banner.png` 為來源素材（1024×1024），頁面不再載入
+- `drink_banner.webp` / `.jpg`：實際顯示用，1600×800
+- `drink_banner_og.jpg`：社群分享用，1200×630
+- `logo_*.webp`：店家卡片用，高度 88px；`logo_chingshin.png` 與 `logo_mrwish.svg` 維持原檔（轉檔後反而較大或本身為向量）
+
+重新產生請用 [sharp](https://sharp.pixelplumbing.com/)，勿直接放大 `.png` 來源。
+
 ## 部署
 
 ```bash

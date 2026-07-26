@@ -54,11 +54,25 @@ function getDrinkPrice(shop, drink, size = 'L') {
 const drinkSelect = document.getElementById('drink-name');
 const cupSizeSelect = document.getElementById('cup-size');
 
+// 依 category 分組渲染。單一 select 在 50嵐 有 81 個選項，手機上很難找；
+// 分成「找好茶／找奶茶／拿鐵系列…」後好用許多。
+const menuByCategory = new Map();
 shopInfo.menu.forEach(drink => {
-  const option = document.createElement('option');
-  option.value = drink.name;
-  option.textContent = drink.name;
-  drinkSelect.appendChild(option);
+  const category = drink.category || '其他';
+  if (!menuByCategory.has(category)) menuByCategory.set(category, []);
+  menuByCategory.get(category).push(drink);
+});
+
+menuByCategory.forEach((drinks, category) => {
+  const group = document.createElement('optgroup');
+  group.label = category;
+  drinks.forEach(drink => {
+    const option = document.createElement('option');
+    option.value = drink.name;
+    option.textContent = drink.name;
+    group.appendChild(option);
+  });
+  drinkSelect.appendChild(group);
 });
 
 // Dynamic size options loading based on chosen drink
@@ -272,7 +286,15 @@ orderForm.addEventListener('submit', async (e) => {
     });
 
     showToast('🎉 訂單已成功送出！');
-    
+
+    // 手機上表單到看板約 1290px，不捲動的話看不到自己的訂單出現。
+    // 尊重使用者的「減少動態效果」偏好設定。
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    document.querySelector('.board-section')?.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start'
+    });
+
     // Clear inputs (except name for convenience)
     drinkSelect.value = '';
     cupSizeSelect.innerHTML = '<option value="" disabled selected>請選擇容量</option>';

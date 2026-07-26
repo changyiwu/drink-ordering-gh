@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#D84315"/>
+  <!-- 飲料杯身（上寬下窄） -->
+  <path d="M18 22h28l-3.5 26a4 4 0 0 1-4 3.4H25.5a4 4 0 0 1-4-3.4z" fill="#FFF3E0"/>
+  <!-- 杯蓋 -->
+  <rect x="15.5" y="16.5" width="33" height="6.5" rx="3.25" fill="#FFFFFF"/>
+  <!-- 吸管 -->
+  <path d="M35 16.5 41 6" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <!-- 珍珠 -->
+  <circle cx="28" cy="44" r="3" fill="#5D4037"/>
+  <circle cx="36" cy="45" r="3" fill="#5D4037"/>
+  <circle cx="32" cy="38" r="2.6" fill="#5D4037"/>
+</svg>
