@@ -69,12 +69,23 @@ query 參數產生 OG 標籤，爬蟲也不會執行 JS。
 
 ## 圖片素材
 
-- `drink_banner.png` 為來源素材（1024×1024），頁面不再載入
-- `drink_banner.webp` / `.jpg`：實際顯示用，1600×800
-- `drink_banner_og.jpg`：社群分享用，1200×630
-- `logo_*.webp`：店家卡片用，高度 88px；`logo_chingshin.png` 與 `logo_mrwish.svg` 維持原檔（轉檔後反而較大或本身為向量）
+所有圖片集中在 `images/`，原始素材另放 `images/source/`：
 
-重新產生請用 [sharp](https://sharp.pixelplumbing.com/)，勿直接放大 `.png` 來源。
+| 檔案 | 用途 |
+|---|---|
+| `drink_banner.webp` / `.jpg` | banner 顯示用，1600×800（2:1） |
+| `drink_banner_og.jpg` | 社群分享用，1200×630 |
+| `logo_*.webp` | 店家卡片用，高度 88px |
+| `logo_chingshin.png`、`logo_mrwish.svg` | 維持原檔（轉 WebP 後反而較大，或本身為向量） |
+| `favicon.svg` | 分頁圖示 |
+| `source/drink_banner.png` | **未裁切原圖**（1024×1024），頁面不載入 |
+
+`source/drink_banner.png` 請勿刪除——上列所有 banner 衍生檔都已裁成 2:1，
+那個裁切不可逆。要換裁切比例或做方形分享圖時只能從它重新產生。
+
+重新產生請用 [sharp](https://sharp.pixelplumbing.com/)，勿直接放大來源
+（原本的 banner 就是被拉伸顯示才會模糊）。店家 logo 的原始 PNG 已移除，
+需要更高解析度時請重新向品牌端取得。
 
 ## 部署
 

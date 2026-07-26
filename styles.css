@@ -1188,20 +1188,53 @@ body.theme-mrwish {
    各 .theme-* 為 .shop-logo 設定的底色。本區塊必須放在主題定義之後，
    兩者特異度相同（0,2,0），靠出現順序決勝。 */
 .shop-card .shop-logo {
-  width: auto;
-  min-width: 44px;
-  max-width: 132px;
-  height: 44px;
-  padding: 5px 10px;
-  background-color: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  /* fit-content 而非 auto：容器 width:auto 搭配子圖的百分比約束會形成循環依賴，
+     瀏覽器改以圖片原生寬度計算，導致容器固定在 max-width 而非貼合圖片。
+     尺寸約束因此改放在 img 上，容器只負責貼合。 */
+  width: fit-content;
+  min-width: 0;
+  max-width: none;
+  height: auto;
+  /* 五家 logo 比例不一（1.8:1 ~ 4.2:1），統一佔位高度才能讓各卡片的
+     店名與說明文字落在同一水平線上 */
+  min-height: 50px;
+  padding: 0;
+  /* 父層是 column flex，預設 stretch 會讓 logo 置中、與卡片文字左對齊不一致 */
+  align-self: flex-start;
+  justify-content: flex-start;
+  /* 無框透明底：必須顯式指定，否則會露出各 .theme-* 為 .shop-logo 設的底色 */
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .shop-card .shop-logo img {
   display: block;
+  /* width 與 height 皆為 auto，讓 max-* 在維持比例的前提下決定最終尺寸 */
   width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  max-width: 132px;
+  max-height: 40px;
+}
+
+/* CoCo 與清心福全的 logo 是白色圖案，設計給深色底使用。放在淺色卡片上會消失
+   （實測 CoCo 有 71% 的圖案像素融入背景，清心福全 23% 消失、19% 偏淡），
+   放白底同樣無效——白字配白底更糟。因此這兩家改給主題深色底，其餘三家維持透明。
+
+   色碼直接寫死而非用 var(--primary-dark)：主題變數定義在 body.theme-* 上，
+   但首頁 body 沒有主題 class（class 在卡片本身），變數會取到 :root 的預設值。
+   選擇器用 .shop-card.theme-x（0,3,0）確保勝過上方的 .shop-card .shop-logo。 */
+.shop-card.theme-coco .shop-logo,
+.shop-card.theme-chingshin .shop-logo {
+  padding: 5px 10px;
+  border-radius: 10px;
+}
+
+.shop-card.theme-coco .shop-logo {
+  background-color: #B33600;
+}
+
+.shop-card.theme-chingshin .shop-logo {
+  background-color: #1B5E20;
 }

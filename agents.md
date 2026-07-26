@@ -17,9 +17,11 @@
 - [x] 階段三：強化 `firestore.rules`——保護設定文件、限制管理授權文件擁有者、新增訂單時驗證姓名／杯數／價格欄位
 - [x] 階段四：使用 Firebase CLI 部署並測試新 Firestore 規則
 - [x] 階段五：驗證匿名使用者新增／修改／刪除自己訂單（線上實測 29 項全數通過）
-- [ ] 階段六：由使用者實測「一鍵清除」，確認 `config/admin` 的 `passwordHash` 設定正確
-- [ ] 階段七：觀察 App Check 指標，確認多數請求已驗證後開啟 Firestore 強制執行
-- [ ] 階段八（待評估）：訂單目前對任何匿名使用者全部可讀（含姓名），評估是否要限制
+- [x] 階段六：網站視覺、效能與可用性改善（標題對比、品牌 logo、banner 壓縮、選單分組、觸控尺寸、分享入口頁）
+- [x] 階段七：圖片素材集中至 `images/`
+- [ ] 階段八：由使用者實測「一鍵清除」，確認 `config/admin` 的 `passwordHash` 設定正確
+- [ ] 階段九：觀察 App Check 指標，確認多數請求已驗證後開啟 Firestore 強制執行
+- [ ] 階段十（待評估）：訂單目前對任何匿名使用者全部可讀（含姓名），評估是否要限制
 
 ## 資料夾結構
 
@@ -34,7 +36,9 @@ drink-ordering-gh/
 ├─ tools/
 │  └─ set-admin-password.mjs  # 產生管理員密碼與 SHA-256 雜湊
 ├─ firebase.json  .firebaserc  .firebase/
-├─ drink_banner.png  logo_*.png  logo_mrwish.svg
+├─ 50lan.html  chingshin.html  coco.html  presotea.html  mrwish.html
+│                     # 分享入口頁（帶專屬 OG 標籤後轉址）
+├─ images/            # 所有圖片素材（banner、店家 logo、favicon）
 ├─ README.md
 ├─ agents.md           # 本檔：專案藍圖
 ├─ handoff.md          # 交接檔（每次收工必更新）
@@ -70,3 +74,4 @@ drink-ordering-gh/
 - 2026-07-22：統一跨 Agent 規則入口，並強化 Firestore 訂單建立時的姓名、杯數與價格欄位驗證。
 - 2026-07-24：專案藍圖改用標準範本格式（補上路線圖 checklist、資料夾結構與同步層級表）。
 - 2026-07-26：完成安全檢查與六項修補——規則加欄位白名單與 update 驗證、管理員授權改雜湊比對、修正看板渲染的 TDZ 與 inline onclick XSS、啟用 App Check。規則已部署並線上實測 29 項通過。
+- 2026-07-26：視覺與效能改善——修正標題對比（1.02 → 12.8）、套用品牌 logo、banner 633KB → 79KB、選單依分類分組、新增分享入口頁；圖片素材集中至 `images/`。
