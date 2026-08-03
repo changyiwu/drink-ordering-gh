@@ -66,6 +66,43 @@ drink-ordering-gh/
 
 **本檔不要出現的東西**：❌ `## 最近進度`／逐次工作紀錄、❌ 決策理由與踩坑完整版。2026-08-03 移除了 `## 最近進度`，內容逐條比對後已在 L3 筆記的〈🗓️ 最近更動紀錄〉——**是主動移除，不是遺漏，不要補回來**。踩過的坑只把**結論**收斂成一條祈使句寫進〈工作約定〉，原因留 L3。
 
+## 專案專屬規則
+
+以下都是**長期有效**的約束，違反會壞掉或悄悄失效。完整成因與當初的取捨見 L3 筆記。
+
+### 離線示範模式
+
+- 判斷依據是 `shop.js` 的 `DEMO_HOSTS`（`localhost`／`127.0.0.1`／`''`）；正式網域不在清單內，線上行為不受影響
+- 示範模式下 `db`／`auth`／`ordersCollection` **刻意維持 `null`**——這是「本機碰不到正式資料」的保證機制，**不要補預設值或改成 eager 初始化**
+- **示範模式測不到 Firestore 規則**。欄位白名單、`update` 驗證、管理員雜湊授權都在規則層，只能在正式網域的瀏覽器環境驗；示範模式密碼固定 `demo`，走的不是真實雜湊比對
+- Firebase SDK 是靜態 `import`，localhost 仍會從 gstatic 下載 SDK，只是不呼叫 `initializeApp`，所以不建立任何連線
+- 改看板 UI 只需改 `renderBoard()`，真假資料共用同一條路徑；**假訂單的欄位形狀要與 Firestore 文件一致**，別讓兩邊漂移
+- 一鍵清除的**正式分支刻意逐字保留**（含 empty 分支裡那個與 `finally` 重複的 `deleteDoc`）——安全路徑不順手重整
+- `isReady()` 除了 `auth.currentUser` 還要求 `myUid` 有值（比原本嚴格），避免 UID 未設好時送出 `userId` 為空的訂單
+
+### 安全
+
+- **不要在觀察指標前就開 App Check 的 Enforce**，會立刻讓所有使用者無法下單與讀取看板
+- **管理員密碼的暴力破解問題沒有根治**：規則層沒有速率限制，任何人都能匿名登入後反覆嘗試刪除來猜密碼。根治要把權限判定移到 Cloud Functions，而那需要 Blaze 方案（本專案 Billing 關閉）。使用者選擇維持原密碼值（同事需知道），**風險是已知且接受的**
+- 換網域時要**同步更新三處**：`shop.js` 的 `APP_CHECK_HOSTS`、reCAPTCHA 主控台網域清單、Firebase Console 的 App Check 設定。漏改會**靜默失敗**（未 Enforce 時完全無感）
+- 規則中判斷 `size` 欄位必須寫 `data['size']`，寫 `data.size` 會與 Map 的 `size()` 方法混淆
+- 本機沒有 Java，Firestore 模擬器跑不起來
+
+### 視覺
+
+- 店家 logo 五家皆為**主題色徽章**，深淺依 logo 本身明暗而定：CoCo、清心福全是白色圖案配主題深色底（`#B33600`／`#1B5E20`）；50嵐、鮮茶道、Mr. Wish 是深色圖案配主題淺色底。**不要為了一致把深淺統一**，兩種 logo 的需求相反
+- 淺色徽章的**邊框不可省略**：卡片本身就是同色系淺色調，填色與卡片對比僅 1.01（鮮茶道）～1.15（50嵐），徽章形狀完全靠邊框界定
+- `.shop-logo` 的 `min-height` 是 **52px**（圖片上限 40 ＋ 上下 padding 10 ＋ 上下邊框 2）。`box-sizing` 為 border-box，設 50 會讓店名錯開 2px
+- 首頁卡片的主題色**不能用 `var(--primary-*)`**：主題變數定義在 `body.theme-*` 上，首頁 body 沒有主題 class，會取到 `:root` 預設值，必須寫死色碼
+- `.shop-card .shop-logo` 用 `width: fit-content`，**不可用 `auto`**——`auto` 搭配子圖的百分比約束會形成循環依賴
+- 分享連結要用 `50lan.html` 這類入口頁；直接分享 `shop.html?shop=50lan` 預覽會是通用標題
+
+### 素材
+
+- `images/source/drink_banner.png` **請勿刪除**：所有 banner 衍生檔都已裁成 2:1，該裁切不可逆
+- 店家 logo 的原始 PNG 已移除，需要更高解析度時重新向品牌端取得（或從 git 歷史取回）
+- `logo_chingshin.png` 是**使用中**的，它轉 WebP 後反而變大
+
 ## 工作約定
 
 - 任何 Agent、任何電腦：**開工先讀 `handoff.md`，收工必更新 `handoff.md`**
