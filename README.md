@@ -94,15 +94,24 @@ query 參數產生 OG 標籤，爬蟲也不會執行 JS。
 
 | 檔案 | 用途 |
 |---|---|
-| `drink_banner.webp` / `.jpg` | banner 顯示用，1600×800（2:1） |
+| `drink_banner.webp` / `.jpg` | banner 顯示用，1600×480（10:3） |
 | `drink_banner_og.jpg` | 社群分享用，1200×630 |
 | `logo_*.webp` | 店家卡片用，高度 88px |
 | `logo_chingshin.png`、`logo_mrwish.svg` | 維持原檔（轉 WebP 後反而較大，或本身為向量） |
 | `favicon.svg` | 分頁圖示 |
-| `source/drink_banner.png` | **未裁切原圖**（1024×1024），頁面不載入 |
+| `source/drink_banner_v2.png` | **現行 banner 的未裁切原圖**（1536×1024），頁面不載入 |
+| `source/drink_banner.png` | 舊版 banner 原圖（1024×1024），已不使用但保留 |
 
-`source/drink_banner.png` 請勿刪除——上列所有 banner 衍生檔都已裁成 2:1，
-那個裁切不可逆。要換裁切比例或做方形分享圖時只能從它重新產生。
+`source/` 內兩張原圖都請勿刪除——上列所有 banner 衍生檔都已裁掉上下，
+那個裁切不可逆。要換裁切比例或做方形分享圖時只能從原圖重新產生。
+
+現行 banner 由 `agent-draw` 技能以 gpt-image-2 生成（無文字，四杯飲品置中排列，
+刻意讓杯體只佔畫面高度約三分之一、上下留白），再從 `drink_banner_v2.png`
+以杯體中心（y≈605）為準裁 1536×461，放大至 1600×480。
+
+**`.banner-wrapper` 的 `aspect-ratio: 10 / 3` 必須與這張圖的比例一致**：
+比例對齊後 `object-fit: cover` 才不會再裁掉上下，四杯飲料得以完整入鏡。
+換圖時若改了比例，CSS 的 `aspect-ratio` 與兩個 HTML 的 `<img height>` 要一起改。
 
 重新產生請用 [sharp](https://sharp.pixelplumbing.com/)，勿直接放大來源
 （原本的 banner 就是被拉伸顯示才會模糊）。店家 logo 的原始 PNG 已移除，

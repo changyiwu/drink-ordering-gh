@@ -116,9 +116,11 @@ body {
   position: relative;
 }
 
+/* 高度由長寬比決定而非寫死：banner 圖本身就是 10:3，比例對齊後 object-fit: cover
+   不會再裁掉上下，四杯飲料才能完整入鏡。改回固定高度會讓杯口與杯底被切掉。 */
 .banner-wrapper {
   width: 100%;
-  height: 220px;
+  aspect-ratio: 10 / 3;
   border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;

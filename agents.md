@@ -99,7 +99,9 @@ drink-ordering-gh/
 
 ### 素材
 
-- `images/source/drink_banner.png` **請勿刪除**：所有 banner 衍生檔都已裁成 2:1，該裁切不可逆
+- `images/source/` 內的原圖**請勿刪除**（現行 `drink_banner_v2.png`、舊版 `drink_banner.png`）：所有 banner 衍生檔都已裁掉上下，該裁切不可逆
+- **banner 圖的比例必須與 `.banner-wrapper` 的 `aspect-ratio` 一致**（現為 10:3）。`.banner-wrapper` **不可改回固定 `height`**——高度寫死會讓 `object-fit: cover` 再裁掉上下，杯口與杯底被切掉。換圖時 CSS 的 `aspect-ratio`、`index.html` 與 `shop.html` 的 `<img height>` 三處要一起改
+- 生 banner 時要在 prompt 明講「主體只佔畫面高度約三分之一、上下留白」，否則主體填滿整張圖，就沒有可裁成寬幅的餘裕
 - 店家 logo 的原始 PNG 已移除，需要更高解析度時重新向品牌端取得（或從 git 歷史取回）
 - `logo_chingshin.png` 是**使用中**的，它轉 WebP 後反而變大
 
