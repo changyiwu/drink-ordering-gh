@@ -46,7 +46,7 @@
     <!-- 離線示範模式提示（只在本機開發時顯示） -->
     <div id="demo-banner" class="demo-banner hidden" role="status">
       <strong><i class="fa-solid fa-flask"></i> 離線示範模式</strong>
-      <span>本機開發環境不連 Firebase，目前顯示的是假訂單，所有操作都只存在這個分頁裡。管理員密碼為 <code>demo</code>。</span>
+      <span>本機開發環境不連 Firebase，目前顯示的是假訂單，所有操作都只存在這個分頁裡。主揪人密碼為 <code>demo</code>。</span>
     </div>
 
     <!-- Header banner section -->
@@ -253,12 +253,29 @@
             </table>
           </div>
           
-          <!-- One-click clear all button -->
-          <div class="clear-btn-container">
-            <button class="clear-btn" id="clear-all-btn" title="清除此店家的所有訂單">
-              <i class="fa-solid fa-trash-arrow-up"></i>
-              <span>一鍵清除本頁訂單</span>
+          <!-- 主揪人專區：未登入只露出登入入口，登入成功後才出現清除全部訂單 -->
+          <div class="host-zone">
+            <button type="button" class="host-login-btn" id="host-login-btn">
+              <i class="fa-solid fa-key"></i>
+              <span>主揪人登入</span>
             </button>
+
+            <div class="host-tools hidden" id="host-tools">
+              <div class="host-status">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>主揪人已登入，可刪除任何人的訂單</span>
+              </div>
+              <div class="host-actions">
+                <button type="button" class="clear-btn" id="clear-all-btn" title="清除此店家的所有訂單">
+                  <i class="fa-solid fa-trash-arrow-up"></i>
+                  <span>清除本頁全部訂單</span>
+                </button>
+                <button type="button" class="host-logout-btn" id="host-logout-btn">
+                  <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                  <span>登出</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -268,6 +285,28 @@
     <footer class="app-footer">
       <p>© 2026 作伙喝飲料 App · 開源於 GitHub Pages</p>
     </footer>
+  </div>
+
+  <!-- 主揪人登入視窗 -->
+  <div class="modal-overlay hidden" id="host-login-modal" role="dialog" aria-modal="true" aria-labelledby="host-login-title">
+    <div class="modal-card">
+      <button type="button" class="modal-close" id="host-login-close" aria-label="關閉登入視窗">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <h2 id="host-login-title"><i class="fa-solid fa-key"></i> 主揪人登入</h2>
+      <p class="modal-desc">登入後才能刪除別人的訂單、或一次清除本頁全部訂單。一般訂購者不需要登入，也隨時可以刪除自己的訂單。</p>
+      <form id="host-login-form" novalidate>
+        <div class="input-group" id="host-password-group">
+          <label for="host-password"><i class="fa-solid fa-lock"></i> 主揪人密碼</label>
+          <input type="password" id="host-password" placeholder="請輸入密碼" autocomplete="current-password">
+          <span class="error-msg" id="host-login-error">密碼錯誤，請再試一次</span>
+        </div>
+        <button type="submit" class="submit-btn" id="host-login-submit">
+          <span class="btn-text">登入</span>
+          <span class="btn-icon"><i class="fa-solid fa-right-to-bracket"></i></span>
+        </button>
+      </form>
+    </div>
   </div>
 
   <!-- Notification Toast -->

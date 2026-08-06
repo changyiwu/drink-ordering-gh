@@ -162,6 +162,10 @@ function initFirebase() {
     .then((userCredential) => {
       myUid = userCredential.user.uid;
       console.log('Firebase Anonymous Auth Success. UID:', myUid);
+
+      // 上一次若沒走到登出（直接關分頁、當掉），admin_auth 會殘留而讓同一個
+      // 匿名 UID 仍具管理權限。載入時清一次，確保「重新整理 = 未登入」。
+      deleteDoc(doc(db, 'admin_auth', myUid)).catch(() => {});
     })
     .catch((error) => {
       console.error('Firebase Auth failed:', error);
@@ -208,6 +212,18 @@ const toast = document.getElementById('toast');
 const summaryTableBody = document.getElementById('summary-table-body');
 const paymentTableBody = document.getElementById('payment-table-body');
 const clearAllBtn = document.getElementById('clear-all-btn');
+
+// 主揪人專區
+const hostLoginBtn = document.getElementById('host-login-btn');
+const hostTools = document.getElementById('host-tools');
+const hostLogoutBtn = document.getElementById('host-logout-btn');
+const hostLoginModal = document.getElementById('host-login-modal');
+const hostLoginClose = document.getElementById('host-login-close');
+const hostLoginForm = document.getElementById('host-login-form');
+const hostLoginSubmit = document.getElementById('host-login-submit');
+const hostPasswordInput = document.getElementById('host-password');
+const hostPasswordGroup = document.getElementById('host-password-group');
+const hostLoginError = document.getElementById('host-login-error');
 
 // Custom Cup Count Stepper Logic
 stepperMinusBtn.addEventListener('click', () => {
@@ -362,8 +378,11 @@ orderForm.addEventListener('submit', async (e) => {
 });
 
 // Delete Order logic
-async function deleteOrder(id, buyerName) {
-  if (confirm(`確定要刪除 ${buyerName} 的訂單嗎？`)) {
+async function deleteOrder(id, buyerName, isOwnOrder) {
+  const question = isOwnOrder
+    ? `確定要刪除 ${buyerName} 的訂單嗎？`
+    : `你正以主揪人身份刪除「${buyerName}」的訂單，確定嗎？`;
+  if (confirm(question)) {
     try {
       if (DEMO_MODE) {
         demoDeleteOrder(id);
@@ -378,46 +397,184 @@ async function deleteOrder(id, buyerName) {
   }
 }
 
-// Clear All Shop Orders logic
-clearAllBtn.addEventListener('click', async () => {
+// ---------------------------------------------------------------------------
+// 主揪人登入
+//
+// 清除全部訂單的入口從「按下去才問密碼」改成「先登入才看得到」。權限判定仍然
+// 完全在 Firestore 規則層：登入只是把密碼雜湊寫進 admin_auth/{uid}，再對
+// admin_probe/{uid} 寫一份空文件試水溫——規則的 allow/deny 就是「密碼對不對」
+// 的唯一回覆，前端無從自行判斷（config/admin 前端不可讀）。
+// 登入狀態只存在記憶體，重新整理就要重登。
+// ---------------------------------------------------------------------------
+
+let isHostLoggedIn = false;
+
+// renderBoard 收到的最後一批訂單。登入狀態一變，刪除鈕的顯示條件就跟著變，
+// 但資料沒變——重畫一次即可，不必等下一次 snapshot。
+let lastOrders = [];
+
+function openHostLoginModal() {
+  hostPasswordInput.value = '';
+  hostPasswordGroup.classList.remove('invalid');
+  hostLoginModal.classList.remove('hidden');
+  hostPasswordInput.focus();
+}
+
+function closeHostLoginModal() {
+  hostLoginModal.classList.add('hidden');
+  hostPasswordInput.value = '';
+  hostPasswordGroup.classList.remove('invalid');
+}
+
+function setHostLoggedIn(loggedIn) {
+  isHostLoggedIn = loggedIn;
+  hostLoginBtn.classList.toggle('hidden', loggedIn);
+  hostTools.classList.toggle('hidden', !loggedIn);
+  // 重畫看板：登入後每一列都要出現刪除鈕，登出後只留自己的
+  renderBoard(lastOrders);
+}
+
+function showHostLoginError(message) {
+  hostLoginError.textContent = message;
+  hostPasswordGroup.classList.add('invalid');
+}
+
+// 正式模式的密碼驗證：寫得進 admin_probe 就代表雜湊與 config/admin 相符。
+// 探針文件只是規則的回覆管道，驗證完就刪掉。
+async function verifyHostPassword(password) {
+  if (DEMO_MODE) {
+    return password === DEMO_ADMIN_PASSWORD;
+  }
+
+  const uid = auth.currentUser.uid;
+  // 只寫入 SHA-256 雜湊，明文密碼不離開瀏覽器，資料庫內也不留明文
+  await setDoc(doc(db, 'admin_auth', uid), { passwordHash: await sha256Hex(password) });
+
+  const probeRef = doc(db, 'admin_probe', uid);
+  try {
+    await setDoc(probeRef, {});
+  } catch (error) {
+    if (error.code === 'permission-denied') {
+      // 密碼錯誤：把剛才寫入的錯誤雜湊收乾淨，避免殘留
+      await deleteDoc(doc(db, 'admin_auth', uid)).catch(() => {});
+      return false;
+    }
+    throw error;
+  }
+
+  // 探針的任務結束；刪不掉也不影響權限（授權來源是 admin_auth）
+  await deleteDoc(probeRef).catch(() => {});
+  return true;
+}
+
+hostLoginBtn.addEventListener('click', () => {
+  if (!isReady()) {
+    showToast('❌ 尚未完成身份驗證，請稍後再試！', 'error');
+    return;
+  }
+  openHostLoginModal();
+});
+
+hostLoginClose.addEventListener('click', closeHostLoginModal);
+
+// 點遮罩空白處關閉；點卡片內部不關
+hostLoginModal.addEventListener('click', (e) => {
+  if (e.target === hostLoginModal) closeHostLoginModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !hostLoginModal.classList.contains('hidden')) {
+    closeHostLoginModal();
+  }
+});
+
+hostLoginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
   if (!isReady()) {
     showToast('❌ 尚未完成身份驗證，請稍後再試！', 'error');
     return;
   }
 
-  const password = prompt(`⚠️ 警告：此動作將清除所有《${shopInfo.name}》的訂單！\n請輸入管理員密碼以確認清除：`);
-  if (password === null) return; // User clicked Cancel
-  
-  if (!password.trim()) {
-    showToast('請輸入密碼！', 'error');
+  const password = hostPasswordInput.value.trim();
+  if (!password) {
+    showHostLoginError('請輸入密碼');
+    return;
+  }
+
+  hostLoginSubmit.disabled = true;
+  hostLoginSubmit.querySelector('.btn-text').textContent = '驗證中...';
+
+  try {
+    const ok = await verifyHostPassword(password);
+    if (ok) {
+      setHostLoggedIn(true);
+      closeHostLoginModal();
+      showToast('🔓 主揪人已登入');
+    } else {
+      showHostLoginError('密碼錯誤，請再試一次');
+      hostPasswordInput.select();
+    }
+  } catch (error) {
+    console.error('Host login failed: ', error);
+    showHostLoginError('登入失敗，請稍後再試');
+  } finally {
+    hostLoginSubmit.disabled = false;
+    hostLoginSubmit.querySelector('.btn-text').textContent = '登入';
+  }
+});
+
+async function hostLogout() {
+  setHostLoggedIn(false);
+  if (!DEMO_MODE && auth?.currentUser) {
+    // 刪掉授權文件，之後的清除請求就會被規則擋下
+    await deleteDoc(doc(db, 'admin_auth', auth.currentUser.uid)).catch((error) => {
+      console.error('Error clearing admin auth doc: ', error);
+    });
+  }
+}
+
+hostLogoutBtn.addEventListener('click', async () => {
+  await hostLogout();
+  showToast('👋 已登出主揪人');
+});
+
+// 關閉分頁時盡力收掉授權文件（不保證送達，登入本來就只在本次瀏覽有效）
+window.addEventListener('pagehide', () => {
+  if (isHostLoggedIn && !DEMO_MODE && auth?.currentUser) {
+    deleteDoc(doc(db, 'admin_auth', auth.currentUser.uid)).catch(() => {});
+  }
+});
+
+// Clear All Shop Orders logic（只有登入後才看得到這顆按鈕）
+clearAllBtn.addEventListener('click', async () => {
+  if (!isReady() || !isHostLoggedIn) {
+    showToast('❌ 請先以主揪人身份登入！', 'error');
+    return;
+  }
+
+  if (!confirm(`⚠️ 警告：此動作將清除所有《${shopInfo.name}》的訂單，且無法復原！\n確定要繼續嗎？`)) {
     return;
   }
 
   clearAllBtn.disabled = true;
   clearAllBtn.querySelector('span').textContent = '清除中...';
-  
-  // 示範模式不碰 admin_auth，也不需要雜湊比對
-  const tempAuthRef = DEMO_MODE ? null : doc(db, 'admin_auth', auth.currentUser.uid);
 
   try {
     if (DEMO_MODE) {
-      const deleted = demoClearAll(password.trim());
+      const deleted = demoClearAll();
       if (deleted === 0) {
         showToast('目前沒有可清除的訂單', 'error');
       } else {
         showToast(`🗑️ 已成功清除所有《${shopInfo.name}》的訂單！`);
       }
     } else {
-      // 只寫入 SHA-256 雜湊，明文密碼不離開瀏覽器，資料庫內也不留明文
-      await setDoc(tempAuthRef, { passwordHash: await sha256Hex(password.trim()) });
-
       // 獲取該店家的所有訂單
       const q = query(ordersCollection, where('shopId', '==', shopId));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
         showToast('目前沒有可清除的訂單', 'error');
-        await deleteDoc(tempAuthRef);
         return;
       }
 
@@ -432,24 +589,19 @@ clearAllBtn.addEventListener('click', async () => {
     }
   } catch (error) {
     console.error('Error clearing documents: ', error);
-    showToast('❌ 清除失敗，請檢查密碼是否正確！', 'error');
+    showToast('❌ 清除失敗，請重新登入後再試一次！', 'error');
   } finally {
-    // 無論成功或失敗，都清除臨時的授權證書文件
-    if (tempAuthRef) {
-      try {
-        await deleteDoc(tempAuthRef);
-      } catch (cleanupError) {
-        console.error('Error cleaning up temp auth document: ', cleanupError);
-      }
-    }
     clearAllBtn.disabled = false;
-    clearAllBtn.querySelector('span').textContent = '一鍵清除本頁訂單';
+    clearAllBtn.querySelector('span').textContent = '清除本頁全部訂單';
   }
 });
 
 // 看板渲染的唯一入口。參數是單純的訂單物件陣列（`{ id, ...欄位 }`），不依賴
 // Firestore 的 snapshot 型別，因此任何來源的資料都能直接餵進來。
 function renderBoard(orders) {
+  // 留一份最新資料，登入／登出切換刪除鈕時不必等下一次 snapshot
+  lastOrders = orders;
+
   // Clear loading state or current list
   ordersList.innerHTML = '';
   summaryTableBody.innerHTML = '';
@@ -545,12 +697,14 @@ function renderBoard(orders) {
     const sizeLabel = size === 'L' ? '大杯' : '中杯';
 
     // Check if the order belongs to the current user
-    const isOwnOrder = myUid && order.userId === myUid;
+    const isOwnOrder = !!(myUid && order.userId === myUid);
+    // 主揪人登入後可刪任何人的訂單；規則層的 isAdmin() 是同一條授權來源
+    const canDelete = isOwnOrder || isHostLoggedIn;
 
     // 不使用 inline onclick：屬性值會先經過 HTML 實體解碼，escapeHtml 產生的 &#39;
     // 會還原成單引號而逃脫 JS 字串，改用 addEventListener 從根本避免
-    const deleteButtonHtml = isOwnOrder ? `
-      <button class="delete-order-btn" type="button" title="刪除此訂單">
+    const deleteButtonHtml = canDelete ? `
+      <button class="delete-order-btn" type="button" title="${isOwnOrder ? '刪除此訂單' : '以主揪人身份刪除此訂單'}">
         <i class="fa-solid fa-trash-can"></i>
       </button>
     ` : '';
@@ -579,10 +733,10 @@ function renderBoard(orders) {
       </div>
     `;
 
-    if (isOwnOrder) {
+    if (canDelete) {
       orderRow
         .querySelector('.delete-order-btn')
-        .addEventListener('click', () => deleteOrder(id, buyer));
+        .addEventListener('click', () => deleteOrder(id, buyer, isOwnOrder));
     }
 
     ordersList.appendChild(orderRow);
@@ -695,7 +849,7 @@ function initDemoMode() {
 
   console.info(
     `離線示範模式已啟用（${location.hostname || 'file://'}）。` +
-    `管理員密碼為「${DEMO_ADMIN_PASSWORD}」，所有資料只存在這個分頁裡，重新整理就會還原。`
+    `主揪人密碼為「${DEMO_ADMIN_PASSWORD}」，所有資料只存在這個分頁裡，重新整理就會還原。`
   );
 }
 
@@ -714,13 +868,8 @@ function demoDeleteOrder(id) {
   demoEmit();
 }
 
-function demoClearAll(password) {
-  // 刻意模仿 Firestore 規則拒絕時的錯誤形狀，密碼錯誤那條路徑在本機也才測得到
-  if (password !== DEMO_ADMIN_PASSWORD) {
-    const error = new Error('密碼錯誤');
-    error.code = 'permission-denied';
-    throw error;
-  }
+// 密碼在登入時就驗過了（見 verifyHostPassword），這裡只負責刪
+function demoClearAll() {
   let deleted = 0;
   demoOrders.forEach((order, id) => {
     if (order.shopId === shopId) {

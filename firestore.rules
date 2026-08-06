@@ -74,6 +74,20 @@ service cloud.firestore {
       allow delete: if isSignedIn() && request.auth.uid == uid;
     }
 
+    // 主揪人登入探針：前端寫得進去，就代表 admin_auth 裡的雜湊與 config/admin 相符。
+    // config 前端不可讀，前端沒有別的方式知道密碼對不對，這裡借規則的 allow/deny
+    // 當作唯一的回覆管道。文件內容一律為空，寫完即刪。
+    match /admin_probe/{uid} {
+      allow read: if false;
+
+      allow create, update: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().size() == 0
+        && isAdmin();
+
+      allow delete: if isSignedIn() && request.auth.uid == uid;
+    }
+
     match /orders/{orderId} {
       // 注意：任何匿名登入者都能讀取全部訂單（共享看板的既有設計）。
       // 若日後不希望姓名對外公開，需改為依 shopId 或邀請碼限制。
