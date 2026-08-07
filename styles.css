@@ -1462,3 +1462,78 @@ body.theme-mrwish {
   background-color: #EEF3EA;
   border-color: #CCDCC1;
 }
+
+/* 首頁分享區塊：QR Code ＋ 網址
+
+   QR Code 是離線產生的靜態 SVG（images/qr_home.svg），不依賴任何線上
+   產圖服務，斷網或第三方服務停用都不影響。圖內自帶白底與 2 模組的
+   靜區（quiet zone），因此外層不需要再補白色 padding；深色底或未來
+   改深色主題時掃描仍然有效。
+
+   網址若改變，QR 圖必須重新產生（見 README 的產生指令），
+   同時更新下方 .share-link 的 href 與顯示文字。 */
+.share-section .share-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.share-qr {
+  flex: 0 0 auto;
+  line-height: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.share-qr img {
+  display: block;
+  width: 180px;
+  height: 180px;
+}
+
+.share-text {
+  flex: 1 1 240px;
+  /* 卡片橫跨整個版面（首頁最寬約 1170px），不設上限的話說明文字會被拉成
+     單行 900px，一行掃過去太長；限制在易讀的行寬。min-width: 0 讓長網址
+     在 flex 子項裡能正常換行而不是撐開容器。 */
+  max-width: 560px;
+  min-width: 0;
+}
+
+.share-text p {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.share-link {
+  display: inline-block;
+  /* 網址較長，窄螢幕允許在任意字元換行，避免撐破卡片 */
+  word-break: break-all;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--primary-color);
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--card-border);
+  border-radius: 30px;
+  padding: 8px 16px;
+  transition: var(--transition-smooth);
+}
+
+.share-link:hover {
+  color: var(--primary-dark);
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 560px) {
+  .share-section .share-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

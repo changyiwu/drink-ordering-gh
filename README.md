@@ -104,6 +104,23 @@ query 參數產生 OG 標籤，爬蟲也不會執行 JS。
 
 首頁的店家卡片仍直接連到 `shop.html`，避免日常使用多一次轉址。
 
+## 首頁 QR Code
+
+首頁下方的「分享這個頁面」區塊放的是 `images/qr_home.svg`，離線產生的靜態向量圖，
+不依賴任何線上產圖服務。內容為首頁網址 `https://changyiwu.github.io/drink-ordering-gh/`。
+
+網址若改變，必須重新產生並同步更新 `index.html` 裡 `.share-link` 的 `href` 與顯示文字：
+
+```bash
+python -m pip install qrcode
+python -c "import qrcode; from qrcode.image.svg import SvgPathImage; qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=2); qr.add_data('https://changyiwu.github.io/drink-ordering-gh/'); qr.make(fit=True); qr.make_image(image_factory=SvgPathImage).save('images/qr_home.svg')"
+```
+
+產生後要手動補兩件事（`qrcode` 不會產生）：把 `width`／`height` 的 `mm` 單位改成
+像素值，並在 `<path>` 前插入 `<rect width="37" height="37" fill="#ffffff"/>` 白底
+（尺寸與 `viewBox` 相同）。**白底不可省略**——SVG 預設透明，沒有白底時深色背景
+會讓明暗反轉而掃不出來。靜區（quiet zone）由 `border=2` 產生，外層 CSS 不必再補 padding。
+
 ## 圖片素材
 
 所有圖片集中在 `images/`，原始素材另放 `images/source/`：
@@ -115,6 +132,7 @@ query 參數產生 OG 標籤，爬蟲也不會執行 JS。
 | `logo_*.webp` | 店家卡片用，高度 88px |
 | `logo_chingshin.png`、`logo_mrwish.svg` | 維持原檔（轉 WebP 後反而較大，或本身為向量） |
 | `favicon.svg` | 分頁圖示 |
+| `qr_home.svg` | 首頁網址 QR Code，顯示 180×180（見〈首頁 QR Code〉） |
 | `source/drink_banner_v2.png` | **現行 banner 的未裁切原圖**（1536×1024），頁面不載入 |
 | `source/drink_banner.png` | 舊版 banner 原圖（1024×1024），已不使用但保留 |
 
