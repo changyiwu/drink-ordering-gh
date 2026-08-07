@@ -1479,19 +1479,134 @@ body.theme-mrwish {
   flex-wrap: wrap;
 }
 
+/* QR 用 <button> 而不是 <div>：點一下會放大，本來就是一個動作。
+   button 自帶鍵盤焦點、Enter／Space 觸發與 role，不必補 tabindex 與
+   keydown 處理。代價是要清掉瀏覽器預設的 appearance／背景／邊框。 */
 .share-qr {
   flex: 0 0 auto;
-  line-height: 0;
+  display: block;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: zoom-in;
   border-radius: var(--radius-md);
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.share-qr:hover {
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.share-qr:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 3px;
 }
 
 .share-qr img {
   display: block;
   width: 180px;
   height: 180px;
+}
+
+/* 提示條疊在 QR 下緣。放在圖上而不是圖下方，是為了不改變按鈕的外框尺寸——
+   QR 的靜區在圖片最下方兩個模組，蓋住不影響掃描。 */
+.share-qr-hint {
+  display: block;
+  margin-top: -28px;
+  position: relative;
+  padding: 5px 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #FFFFFF;
+  background: rgba(62, 39, 35, 0.72);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+/* QR 放大對話框 */
+.qr-dialog {
+  /* 必寫。原生 dialog 靠 UA 樣式的 margin: auto 置中，但本檔開頭的
+     `* { margin: 0 }` reset 選擇器權重贏過 UA 樣式，不補回來會黏在左上角。 */
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  /* 手機直向時 min() 讓圖片吃滿可用寬度，桌機則停在 380px */
+  max-width: min(92vw, 428px);
+}
+
+.qr-dialog::backdrop {
+  background: rgba(62, 39, 35, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.qr-dialog img {
+  display: block;
+  /* 寬度交給對話框的 max-width 收斂，避免 img 與 dialog 各算一次 vw
+     而差幾 px 造成溢出。QR 是正方形，所以用 60vh 當寬度上限就等於
+     限制了高度——橫向持機時對話框才不會超出畫面。 */
+  width: 100%;
+  max-width: min(380px, 60vh);
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+/* 窄螢幕縮小留白，把省下的寬度全給 QR——放大的用意就是離遠一點也掃得到 */
+@media (max-width: 480px) {
+  .qr-dialog {
+    padding: 16px;
+    max-width: 96vw;
+  }
+
+  .qr-dialog-close {
+    top: 6px;
+    right: 6px;
+  }
+}
+
+.qr-dialog-url {
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  word-break: break-all;
+  color: var(--text-muted);
+}
+
+.qr-dialog-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--card-border);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.qr-dialog-close:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-light);
 }
 
 .share-text {

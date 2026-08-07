@@ -120,11 +120,12 @@
       <section class="share-section glass-card" style="grid-column: 1 / -1;">
         <h2><i class="fa-solid fa-qrcode"></i> 分享這個頁面</h2>
         <div class="share-content">
-          <div class="share-qr">
+          <button type="button" class="share-qr" id="qrZoomBtn" aria-label="放大 QR Code">
             <img src="images/qr_home.svg" alt="作伙喝飲料首頁 QR Code" width="180" height="180" loading="lazy">
-          </div>
+            <span class="share-qr-hint"><i class="fa-solid fa-magnifying-glass-plus"></i> 點一下放大</span>
+          </button>
           <div class="share-text">
-            <p>用手機掃描旁邊的 QR Code，就能打開這個首頁自己挑飲料店，不必再一個一個傳連結。</p>
+            <p>用手機掃描旁邊的 QR Code，就能打開這個首頁自己挑飲料店，不必再一個一個傳連結。投影或隔著距離掃不到時，點一下 QR Code 可以放大。</p>
             <a class="share-link" href="https://changyiwu.github.io/drink-ordering-gh/">changyiwu.github.io/drink-ordering-gh</a>
           </div>
         </div>
@@ -135,5 +136,37 @@
       <p>© 2026 作伙喝飲料 App · 開源於 GitHub Pages</p>
     </footer>
   </div>
+
+  <!-- QR Code 放大檢視。用原生 <dialog>：Esc 關閉、焦點鎖在對話框內、
+       背景 inert 都由瀏覽器處理，不必自己實作。 -->
+  <dialog class="qr-dialog" id="qrDialog" aria-label="放大的 QR Code">
+    <button type="button" class="qr-dialog-close" id="qrDialogClose" aria-label="關閉">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <img src="images/qr_home.svg" alt="作伙喝飲料首頁 QR Code" width="380" height="380">
+    <p class="qr-dialog-url">changyiwu.github.io/drink-ordering-gh</p>
+  </dialog>
+
+  <script>
+    (function () {
+      var dialog = document.getElementById('qrDialog');
+      var openBtn = document.getElementById('qrZoomBtn');
+      var closeBtn = document.getElementById('qrDialogClose');
+      if (!dialog || !openBtn || !closeBtn || !dialog.showModal) return;
+
+      openBtn.addEventListener('click', function () { dialog.showModal(); });
+      closeBtn.addEventListener('click', function () { dialog.close(); });
+
+      // 點背景關閉。判斷用座標而不是 event.target === dialog：
+      // ::backdrop 的點擊會冒泡成 dialog 自身的事件，但點在 dialog 的
+      // padding 上 target 同樣是 dialog，只比對 target 會連點卡片留白都關掉。
+      dialog.addEventListener('click', function (event) {
+        var box = dialog.getBoundingClientRect();
+        var outside = event.clientX < box.left || event.clientX > box.right ||
+                      event.clientY < box.top || event.clientY > box.bottom;
+        if (outside) dialog.close();
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -109,6 +109,12 @@ query 參數產生 OG 標籤，爬蟲也不會執行 JS。
 首頁下方的「分享這個頁面」區塊放的是 `images/qr_home.svg`，離線產生的靜態向量圖，
 不依賴任何線上產圖服務。內容為首頁網址 `https://changyiwu.github.io/drink-ordering-gh/`。
 
+點一下 QR 會用原生 `<dialog>` 放大（桌機 380px、手機吃滿寬度）。之所以用原生元素而不是
+自刻 overlay：Esc 關閉、焦點鎖在對話框內、關閉後焦點退回原按鈕、背景 `inert` 全部由
+瀏覽器負責。⚠️ `.qr-dialog` 必須明寫 `margin: auto`——原生 dialog 靠 UA 樣式的
+`margin: auto` 置中，但 `styles.css` 開頭的 `* { margin: 0 }` 權重贏過 UA 樣式，
+少了這行對話框會黏在畫面左上角。
+
 網址若改變，必須重新產生並同步更新 `index.html` 裡 `.share-link` 的 `href` 與顯示文字：
 
 ```bash
