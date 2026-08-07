@@ -1516,20 +1516,17 @@ body.theme-mrwish {
   height: 180px;
 }
 
-/* 提示條疊在 QR 下緣。放在圖上而不是圖下方，是為了不改變按鈕的外框尺寸——
-   QR 的靜區在圖片最下方兩個模組，蓋住不影響掃描。 */
+/* 提示條排在圖片下方，不可疊在圖上。
+   靜區只有 2 個模組，換算到 180px 的圖僅約 10px，一條 27px 的提示條會蓋掉
+   約 5 個模組、吃進資料區，部分辨識器就掃不出來了。 */
 .share-qr-hint {
   display: block;
-  margin-top: -28px;
-  position: relative;
-  padding: 5px 0;
+  padding: 6px 8px;
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.4;
   color: #FFFFFF;
-  background: rgba(62, 39, 35, 0.72);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(62, 39, 35, 0.82);
 }
 
 /* QR 放大對話框 */
